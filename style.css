@@ -138,12 +138,10 @@ body{
 .date-range{ display:flex; align-items:center; gap:0; }
 .fp-wrap{
   display:flex; align-items:center;
-  background:var(--card2); border:0.8px solid var(--border2); border-right-width:0;
-  border-radius:4px 0 0 4px; cursor:pointer;
+  background:var(--card2); border:0.8px solid var(--border2);
+  border-radius:4px; cursor:pointer;
   transition:border-color .15s, background .15s;
-  position:relative;
 }
-.fp-wrap.last{ border-radius:0 4px 4px 0; border-right-width:0.8px; }
 .fp-wrap:hover,.fp-wrap.open{
   background:var(--card); border-color:var(--gold);
 }
