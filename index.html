@@ -429,13 +429,22 @@ function switchTab(name,el){
 const fmt=d=>d.toISOString().split('T')[0];
 
 function parseDate(s){
-  if(!s||s==='-'||!s.trim()) return null;
-  const p=s.trim().split(' '),dp=p[0].split('/');
+  if(!s||s==='-'||!s.trim()||s==='0') return null;
+  s=s.trim();
+  const p=s.split(' '),dp=p[0].split('/');
   if(dp.length<3) return null;
-  const [dd,mm,yyyy]=dp.map(Number);
-  if(isNaN(dd)||isNaN(mm)||isNaN(yyyy)) return null;
-  if(p[1]){const[hh,mi]=p[1].split(':').map(Number);return new Date(yyyy,mm-1,dd,hh||0,mi||0);}
-  return new Date(yyyy,mm-1,dd);
+  let a=Number(dp[0]),b=Number(dp[1]),c=Number(dp[2]);
+  if(isNaN(a)||isNaN(b)||isNaN(c)) return null;
+  const twoDigit=(dp[2].length<=2);
+  if(c<100) c+=2000;
+  let dd,mm;
+  if(a>12)          {dd=a;mm=b;}       // a>12 → certamente dia (DD/MM/...)
+  else if(b>12)     {mm=a;dd=b;}       // b>12 → certamente dia, a é mês (M/D/...)
+  else if(twoDigit) {mm=a;dd=b;}       // ano 2 dígitos → formato EZ = M/D/YY
+  else              {dd=a;mm=b;}       // ano 4 dígitos → formato RD = DD/MM/YYYY
+  if(mm<1||mm>12||dd<1||dd>31) return null;
+  if(p[1]){const tp=p[1].split(':');return new Date(c,mm-1,dd,Number(tp[0])||0,Number(tp[1])||0);}
+  return new Date(c,mm-1,dd);
 }
 
 function parseMin(s){
@@ -526,7 +535,7 @@ function dedupEZ(arr){
     if(tipo==='bot'||tipo==='automatizado'||tipo==='robot') return;
     const proto=(r['Protocolo']||'').toString().trim();
     if(!proto) return;
-    const ia=parseInt(r['Interações Agente']||'0')||0;
+    const ia=parseInt(r['Contagem de Interações do Agente']||'0')||0;
     const dt=parseDate(r['Criado em']);
     if(!map[proto]){map[proto]={...r,_ia:ia,_dt:dt};}
     else{
@@ -952,8 +961,8 @@ function renderAtendimento(ez,rd){
   document.getElementById('at-total').textContent=ez.length||'0';
   const tpis=ez.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
   const tmas=ez.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
-  const iA=ez.map(r=>parseInt(r['Interações Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
-  const iC=ez.map(r=>parseInt(r['Interações Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
+  const iA=ez.map(r=>parseInt(r['Contagem de Interações do Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
+  const iC=ez.map(r=>parseInt(r['Contagem de Interações do Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
   document.getElementById('at-tpi').textContent=fmtMin(avg(tpis));
   document.getElementById('at-tma').textContent=fmtMin(avg(tmas));
   document.getElementById('at-iagente').textContent=iA.length?Math.round(avg(iA)*10)/10+'x':'--';
