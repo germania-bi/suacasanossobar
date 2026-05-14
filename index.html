@@ -47,29 +47,29 @@
 <!-- ═══ FILTERS ═══ -->
 <div class="filters-wrap">
   <div class="f-group">
-    <span class="f-lbl">De</span>
+    <span class="f-lbl">Período</span>
     <div class="date-range">
-      <input type="date" class="date-inp" id="dateFrom">
+      <input type="date" class="date-inp" id="dateFrom" onchange="applyFilter()">
       <span class="date-sep">→</span>
-      <input type="date" class="date-inp" id="dateTo">
+      <input type="date" class="date-inp" id="dateTo" onchange="applyFilter()">
     </div>
   </div>
-  <div class="f-shortcuts">
+  <div class="f-shortcuts" id="dateShortcuts">
     <button class="btn-sh" onclick="setShortcut('today',this)">Hoje</button>
     <button class="btn-sh" onclick="setShortcut('7d',this)">7d</button>
-    <button class="btn-sh" onclick="setShortcut('thismonth',this)">Mês</button>
+    <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
-    <button class="btn-sh active" onclick="setShortcut('all',this)">Tudo</button>
+    <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
   </div>
-  <button class="btn-f" onclick="applyFilter()">Aplicar</button>
   <div class="f-pipe"></div>
   <div class="f-group">
     <span class="f-lbl">Canal</span>
-    <select class="f-sel" id="filtroCanal" onchange="applyFilter()">
-      <option value="todos">Todos</option>
-      <option value="germania">Canal Germânia</option>
-      <option value="loja">Venda de Loja</option>
-    </select>
+    <div class="f-shortcuts" id="canalChips">
+      <button class="btn-sh active" onclick="setCanal('todos',this)">Todos</button>
+      <button class="btn-sh"        onclick="setCanal('germania',this)">Germânia</button>
+      <button class="btn-sh"        onclick="setCanal('loja',this)">Loja</button>
+    </div>
+    <input type="hidden" id="filtroCanal" value="todos">
   </div>
   <div class="sync-group">
     <div class="sync-status" id="syncStatus">
@@ -672,10 +672,17 @@ function hbarHtml(id,items,color=''){
 // DATES UI
 // ═══════════════════════════════════════════════════════
 function initDates(){
-  const f=new Date(2024,0,1),t=new Date(2030,11,31);
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  const f=new Date(y,m,1),t=new Date(y,m+1,0);
   document.getElementById('dateFrom').value=fmt(f);
   document.getElementById('dateTo').value=fmt(t);
   dateFrom=f; dateTo=t;
+}
+function setCanal(val,el){
+  document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('filtroCanal').value=val;
+  renderAll();
 }
 function setShortcut(type,el){
   document.querySelectorAll('.btn-sh').forEach(b=>b.classList.remove('active'));

@@ -125,49 +125,51 @@ body{
 /* ─── FILTERS ─── */
 .filters-wrap{
   background:var(--surface);
+  border-top:2px solid var(--red);
   border-bottom:1px solid var(--border2);
-  padding:8px var(--pad-h);
-  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:6px var(--pad-h);
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
 }
 .f-group{ display:flex; align-items:center; gap:6px; }
 .f-lbl{
-  font-size:var(--fs-body); color:var(--txt-mid);
-  text-transform:uppercase; letter-spacing:.1em;
-  font-weight:600; white-space:nowrap;
+  font-size:10px; color:var(--txt-faint);
+  text-transform:uppercase; letter-spacing:.14em;
+  font-weight:700; white-space:nowrap;
 }
-.f-sel,.date-inp{
+.date-inp{
   background:var(--card2); border:0.8px solid var(--border2);
   color:var(--txt); font-family:'Barlow',sans-serif;
   font-size:var(--fs-body); padding:5px 8px;
   border-radius:4px; outline:none; cursor:pointer;
+  color-scheme:dark;
 }
-.f-sel:focus,.date-inp:focus{ border-color:var(--gold); }
+.date-inp:focus{ border-color:var(--gold); }
 .date-range{ display:flex; align-items:center; gap:5px; }
 .date-sep{ color:var(--txt-faint); font-size:11px; }
-.f-shortcuts{ display:flex; gap:4px; }
+
+/* segmented pill groups */
+.f-shortcuts{ display:flex; gap:0; }
 .btn-sh{
-  background:transparent; border:0.8px solid var(--border2);
+  background:var(--card2); border:0.8px solid var(--border2);
+  border-right-width:0;
   color:var(--txt-mid); font-family:'Barlow Condensed',sans-serif;
-  font-size:var(--fs-ui); font-weight:700; letter-spacing:.05em;
-  text-transform:uppercase; padding:5px 11px; border-radius:4px;
+  font-size:13px; font-weight:700; letter-spacing:.05em;
+  text-transform:uppercase; padding:5px 12px; border-radius:0;
   cursor:pointer; transition:all .15s; white-space:nowrap;
 }
-.btn-sh:hover{ border-color:var(--gold); color:var(--gold-lt); }
-.btn-sh.active{ background:var(--red); border-color:var(--red); color:#fff; }
-.f-pipe{ width:1px; height:18px; background:var(--border2); margin:0 2px; }
-.btn-f{
-  background:var(--red); border:none; color:#fff;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:var(--fs-ui); font-weight:800; letter-spacing:.08em;
-  text-transform:uppercase; padding:5px 14px;
-  border-radius:4px; cursor:pointer; transition:opacity .15s;
-}
-.btn-f:hover{ opacity:.82; }
+.btn-sh:first-child{ border-radius:4px 0 0 4px; }
+.btn-sh:last-child { border-radius:0 4px 4px 0; border-right-width:0.8px; }
+.btn-sh:hover{ background:var(--card); color:var(--gold-lt); border-color:var(--gold); z-index:1; position:relative; }
+.btn-sh.active{ background:var(--red); border-color:var(--red); color:#fff; border-right-width:0.8px; z-index:2; position:relative; }
+.btn-sh.active + .btn-sh{ border-left-width:0; }
+
+.f-pipe{ width:1px; height:18px; background:var(--border2); margin:0 4px; }
+
 .sync-group{ display:flex; align-items:center; gap:6px; margin-left:auto; }
 .sync-btn{
-  background:transparent; border:0.8px solid var(--border2);
+  background:var(--card2); border:0.8px solid var(--border2);
   color:var(--txt-mid); font-family:'Barlow Condensed',sans-serif;
-  font-size:var(--fs-ui); font-weight:700; text-transform:uppercase;
+  font-size:13px; font-weight:700; text-transform:uppercase;
   letter-spacing:.06em; padding:5px 11px; border-radius:4px;
   cursor:pointer; display:flex; align-items:center; gap:5px;
   transition:all .15s;
@@ -182,7 +184,7 @@ body{
 .upd-label{
   font-size:10px; color:var(--txt-faint);
   letter-spacing:.07em; white-space:nowrap;
-  margin-left:auto; padding:5px 0;
+  padding:5px 0;
 }
 
 /* ─── MAIN ─── */
