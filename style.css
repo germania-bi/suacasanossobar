@@ -136,18 +136,29 @@ body{
   font-weight:700; white-space:nowrap;
 }
 .date-range{ display:flex; align-items:center; gap:0; }
-.fp-hidden{ position:absolute; width:0; height:0; padding:0; border:0; visibility:hidden; pointer-events:none; }
-.date-pill{
-  background:var(--card2); border:0.8px solid var(--border2);
-  border-right-width:0;
-  color:var(--txt-mid); font-family:'Barlow Condensed',sans-serif;
-  font-size:13px; font-weight:700; letter-spacing:.04em;
-  padding:5px 14px; cursor:pointer; min-width:100px; text-align:center;
-  border-radius:4px 0 0 4px; white-space:nowrap; transition:all .15s;
+.fp-wrap{
+  display:flex; align-items:center;
+  background:var(--card2); border:0.8px solid var(--border2); border-right-width:0;
+  border-radius:4px 0 0 4px; cursor:pointer;
+  transition:border-color .15s, background .15s;
+  position:relative;
 }
-.date-pill.last{ border-radius:0 4px 4px 0; border-right-width:0.8px; }
-.date-pill:hover{ background:var(--card); color:var(--gold-lt); border-color:var(--gold); position:relative; z-index:1; }
-.date-pill.open{ background:var(--card); color:var(--gold-lt); border-color:var(--gold); position:relative; z-index:1; }
+.fp-wrap.last{ border-radius:0 4px 4px 0; border-right-width:0.8px; }
+.fp-wrap:hover,.fp-wrap.open{
+  background:var(--card); border-color:var(--gold);
+}
+.fp-wrap:hover .fp-icon,.fp-wrap.open .fp-icon{ color:var(--gold-lt); }
+.date-inp{
+  background:transparent!important; border:none!important; outline:none!important;
+  color:var(--txt)!important; font-family:'Barlow Condensed',sans-serif!important;
+  font-size:13px!important; font-weight:700!important; letter-spacing:.04em!important;
+  padding:6px 4px 6px 12px!important; cursor:pointer!important;
+  width:92px!important; text-align:center!important;
+}
+.fp-icon{
+  color:var(--txt-faint); padding:0 10px 0 0; flex-shrink:0;
+  display:flex; align-items:center; transition:color .15s; pointer-events:none;
+}
 .date-sep{ color:var(--txt-faint); font-size:11px; padding:0 4px; flex-shrink:0; }
 
 /* ─── FLATPICKR overrides ─── */
