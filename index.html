@@ -16,10 +16,10 @@
 <!-- ═══ HEADER ═══ -->
 <header class="header">
   <div class="header-inner">
-    <div class="h-logo"><img src="logo.png" alt="Germânia" style="width:72px;height:72px;object-fit:contain"></div>
+    <div class="h-logo"><img src="logo.png" alt="Germânia" style="width:80px;height:80px;object-fit:contain"></div>
     <div class="h-brand">
       <div class="eyebrow">Germânia · Cervejaria · Dashboard Comercial</div>
-      <div class="h-title">SCNB · Chopeiras</div>
+      <div class="h-title">Sua Casa Nosso Bar / Chopeiras</div>
     </div>
     <div class="h-div"></div>
     <div>
@@ -52,9 +52,11 @@
   <div class="f-group">
     <span class="f-lbl">Período</span>
     <div class="date-range">
-      <input type="text" class="date-inp" id="dateFrom" placeholder="Início" readonly>
+      <button class="date-pill" id="dateFromBtn"><span id="dateFromTxt">--</span></button>
       <span class="date-sep">→</span>
-      <input type="text" class="date-inp" id="dateTo" placeholder="Fim" readonly>
+      <button class="date-pill last" id="dateToBtn"><span id="dateToTxt">--</span></button>
+      <input type="text" id="dateFrom" class="fp-hidden">
+      <input type="text" id="dateTo" class="fp-hidden">
     </div>
   </div>
   <div class="f-shortcuts" id="dateShortcuts">
@@ -670,13 +672,21 @@ function hbarHtml(id,items,color=''){
 // DATES UI
 // ═══════════════════════════════════════════════════════
 let fpFrom,fpTo;
+function setDateTxt(id,d){document.getElementById(id).textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function initDates(){
   const n=new Date(),y=n.getFullYear(),m=n.getMonth();
   const f=new Date(y,m,1),t=new Date(y,m+1,0);
   dateFrom=f; dateTo=t;
-  const base={locale:'pt',dateFormat:'d/m/Y',disableMobile:true};
-  fpFrom=flatpickr('#dateFrom',{...base,defaultDate:f,onChange(d){if(d[0]){dateFrom=d[0];renderAll();}}});
-  fpTo  =flatpickr('#dateTo',  {...base,defaultDate:t,onChange(d){if(d[0]){dateTo=new Date(d[0]);dateTo.setHours(23,59,59);renderAll();}}});
+  setDateTxt('dateFromTxt',f); setDateTxt('dateToTxt',t);
+  const fBtn=document.getElementById('dateFromBtn'),tBtn=document.getElementById('dateToBtn');
+  fpFrom=flatpickr('#dateFrom',{locale:'pt',dateFormat:'Y-m-d',defaultDate:f,positionElement:fBtn,
+    onOpen(){fBtn.classList.add('open');}, onClose(){fBtn.classList.remove('open');},
+    onChange(d){if(d[0]){dateFrom=d[0];setDateTxt('dateFromTxt',d[0]);renderAll();}}});
+  fpTo=flatpickr('#dateTo',{locale:'pt',dateFormat:'Y-m-d',defaultDate:t,positionElement:tBtn,
+    onOpen(){tBtn.classList.add('open');}, onClose(){tBtn.classList.remove('open');},
+    onChange(d){if(d[0]){dateTo=new Date(d[0]);dateTo.setHours(23,59,59);setDateTxt('dateToTxt',d[0]);renderAll();}}});
+  fBtn.onclick=()=>fpFrom.open();
+  tBtn.onclick=()=>fpTo.open();
 }
 function setCanal(val,el){
   document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
@@ -697,6 +707,7 @@ function setShortcut(type,el){
   else if(type==='quarter'){f=new Date(+n-90*864e5);t=n;}
   else if(type==='all'){f=new Date(2024,0,1);t=new Date(2030,11,31);}
   fpFrom?.setDate(f,false); fpTo?.setDate(t,false);
+  setDateTxt('dateFromTxt',f); setDateTxt('dateToTxt',t);
   dateFrom=f; dateTo=t; renderAll();
 }
 function applyFilter(){

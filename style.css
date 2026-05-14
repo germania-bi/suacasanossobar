@@ -136,32 +136,18 @@ body{
   font-weight:700; white-space:nowrap;
 }
 .date-range{ display:flex; align-items:center; gap:0; }
-.date-range .flatpickr-wrapper{ display:contents; }
-.date-inp{
-  background:var(--card2)!important; border:0.8px solid var(--border2)!important;
-  border-right-width:0!important;
-  color:var(--txt)!important; font-family:'Barlow Condensed',sans-serif!important;
-  font-size:13px!important; font-weight:700!important; letter-spacing:.04em!important;
-  padding:5px 28px 5px 10px!important; outline:none!important; cursor:pointer!important;
-  width:120px!important; text-align:center!important; box-sizing:border-box!important;
-  transition:border-color .15s, background .15s!important;
+.fp-hidden{ position:absolute; width:0; height:0; padding:0; border:0; visibility:hidden; pointer-events:none; }
+.date-pill{
+  background:var(--card2); border:0.8px solid var(--border2);
+  border-right-width:0;
+  color:var(--txt-mid); font-family:'Barlow Condensed',sans-serif;
+  font-size:13px; font-weight:700; letter-spacing:.04em;
+  padding:5px 14px; cursor:pointer; min-width:100px; text-align:center;
+  border-radius:4px 0 0 4px; white-space:nowrap; transition:all .15s;
 }
-.date-inp:first-child{ border-radius:4px 0 0 4px!important; }
-.date-inp:last-of-type,.date-range .flatpickr-wrapper:last-child .date-inp{
-  border-radius:0 4px 4px 0!important; border-right-width:0.8px!important;
-}
-.date-inp:hover{ background:var(--card)!important; border-color:var(--border2)!important; }
-.date-inp:focus,.date-inp.active{ border-color:var(--gold)!important; background:var(--card)!important; }
-
-/* ícone calendário via wrapper */
-.date-range .flatpickr-wrapper{ position:relative; }
-.date-range .flatpickr-wrapper::after{
-  content:'📅'; font-size:11px; position:absolute;
-  right:8px; top:50%; transform:translateY(-50%);
-  pointer-events:none; opacity:.4; line-height:1;
-}
-.date-range .flatpickr-wrapper:hover::after{ opacity:.8; }
-
+.date-pill.last{ border-radius:0 4px 4px 0; border-right-width:0.8px; }
+.date-pill:hover{ background:var(--card); color:var(--gold-lt); border-color:var(--gold); position:relative; z-index:1; }
+.date-pill.open{ background:var(--card); color:var(--gold-lt); border-color:var(--gold); position:relative; z-index:1; }
 .date-sep{ color:var(--txt-faint); font-size:11px; padding:0 4px; flex-shrink:0; }
 
 /* ─── FLATPICKR overrides ─── */
