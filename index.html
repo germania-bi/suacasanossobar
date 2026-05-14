@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCNB · Chopeiras · Germânia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="h-logo"><img src="logo.png" alt="Germânia" style="width:72px;height:72px;object-fit:contain"></div>
+    <div class="h-brand">
+      <div class="eyebrow">Germânia · Cervejaria · Dashboard Comercial</div>
+      <div class="h-title">SCNB · Chopeiras</div>
+    </div>
+    <div class="h-div"></div>
+    <div>
+      <div class="h-resumo-lbl">Resumo do Período</div>
+      <div class="h-kpis">
+        <div class="hk"><div class="hk-l">Leads</div><div class="hk-v" id="hkv-leads">--</div><div class="hk-sub" id="hks-leads">total criados</div></div>
+        <div class="hk"><div class="hk-l">Vendas</div><div class="hk-v" id="hkv-vendas">--</div><div class="hk-sub" id="hks-vendas">fechadas</div></div>
+        <div class="hk"><div class="hk-l">Faturado</div><div class="hk-v" id="hkv-fat">--</div><div class="hk-sub" id="hks-fat">Canal Germânia</div></div>
+        <div class="hk"><div class="hk-l">Conversão</div><div class="hk-v" id="hkv-conv">--</div><div class="hk-sub" id="hks-conv">decididas</div></div>
+        <div class="hk"><div class="hk-l">Ticket Médio</div><div class="hk-v" id="hkv-ticket">--</div><div class="hk-sub">por venda</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TABS ═══ -->
+<nav class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active"  onclick="switchTab('visao',this)">Visão Geral</div>
+    <div class="tab"         onclick="switchTab('funil',this)">Funil &amp; Ciclo</div>
+    <div class="tab"         onclick="switchTab('produto',this)">Produto &amp; Ticket</div>
+    <div class="tab"         onclick="switchTab('perfil',this)">Perfil &amp; ICP</div>
+    <div class="tab"         onclick="switchTab('atend',this)">Atendimento</div>
+    <div class="tab"         onclick="switchTab('mkt',this)">Marketing &amp; Ads</div>
+  </div>
+</nav>
+
+<!-- ═══ FILTERS ═══ -->
+<div class="filters-wrap">
+  <div class="f-group">
+    <span class="f-lbl">De</span>
+    <div class="date-range">
+      <input type="date" class="date-inp" id="dateFrom">
+      <span class="date-sep">→</span>
+      <input type="date" class="date-inp" id="dateTo">
+    </div>
+  </div>
+  <div class="f-shortcuts">
+    <button class="btn-sh" onclick="setShortcut('today',this)">Hoje</button>
+    <button class="btn-sh" onclick="setShortcut('7d',this)">7d</button>
+    <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
+    <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
+    <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
+  </div>
+  <button class="btn-f" onclick="applyFilter()">Aplicar</button>
+  <div class="f-pipe"></div>
+  <div class="f-group">
+    <span class="f-lbl">Canal</span>
+    <select class="f-sel" id="filtroCanal" onchange="applyFilter()">
+      <option value="todos">Todos</option>
+      <option value="germania">Canal Germânia</option>
+      <option value="loja">Venda de Loja</option>
+    </select>
+  </div>
+  <div class="sync-group">
+    <div class="sync-status" id="syncStatus">
+      <div class="sync-dot"></div>
+      <span id="syncMsg">Aguardando</span>
+    </div>
+    <button class="sync-btn" id="syncBtn" onclick="fetchSheets()">
+      <span class="spin">↻</span> Atualizar
+    </button>
+  </div>
+  <span class="upd-label" id="updLabel"></span>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+
+<!-- ─── ABA 1: VISÃO GERAL ─── -->
+<div id="panel-visao" class="tab-panel active">
+
+  <div class="mkpi-row">
+    <div class="mkpi"><div class="mkpi-v"       id="vg-leads">--</div><div class="mkpi-l">Leads</div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="vg-vendas">--</div><div class="mkpi-l">Vendas Germania</div></div>
+    <div class="mkpi"><div class="mkpi-v blue"   id="vg-loja">--</div><div class="mkpi-l">Vendas de Loja</div></div>
+    <div class="mkpi"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão</div></div>
+    <div class="mkpi"><div class="mkpi-v gold"   id="vg-ticket">--</div><div class="mkpi-l">Ticket Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-tpi">--</div><div class="mkpi-l">TPI Médio</div></div>
+  </div>
+
+  <div class="g21">
+    <div class="chart-box">
+      <div class="ctitle">Leads por Dia</div>
+      <canvas id="ch-leads-dia"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="ctitle">Resultado dos Atendimentos</div>
+      <canvas id="ch-class-visao"></canvas>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">📊</div><div class="btitle">Canal Germânia</div><div class="bsub" id="vg-canal-periodo"></div></div>
+      <div class="bbody" id="vg-canal-body"><div class="empty"><div class="ei">⏳</div>Carregando...</div></div>
+    </div>
+    <div class="block">
+      <div class="bhead blue"><div class="bico blue">📍</div><div class="btitle">Top Cidades</div></div>
+      <div class="bbody"><div class="hbar-list" id="vg-cidades"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── ABA 2: FUNIL & CICLO ─── -->
+<div id="panel-funil" class="tab-panel">
+
+  <div class="mkpi-row">
+    <div class="mkpi"><div class="mkpi-v"       id="fn-leads">--</div><div class="mkpi-l">Leads Totais</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="fn-andamento">--</div><div class="mkpi-l">Em Andamento</div></div>
+    <div class="mkpi"><div class="mkpi-v green" id="fn-ganho">--</div><div class="mkpi-l">Vendas</div></div>
+    <div class="mkpi"><div class="mkpi-v red"   id="fn-perdido">--</div><div class="mkpi-l">Perdas / Desq.</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="fn-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div></div>
+  </div>
+
+  <div class="block">
+    <div class="bhead"><div class="bico red">🔻</div><div class="btitle">Funil por Etapa</div><div class="bsub">Canal Germânia</div></div>
+    <div class="bbody"><div class="funil-list" id="funil-etapas"></div></div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">⏱</div><div class="btitle">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
+      <div class="bbody">
+        <div style="max-height:160px"><canvas id="ch-ciclo"></canvas></div>
+        <div class="divider"></div>
+        <div class="mbar-list" id="ciclo-faixas"></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="bhead" style="border-left-color:var(--s-yellow)"><div class="bico" style="background:rgba(150,106,0,.15);border:1px solid rgba(150,106,0,.3)">⚠</div><div class="btitle">Aging</div><div class="bsub">deals parados</div></div>
+      <div class="bbody"><div class="aging-list" id="aging-list"></div></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="bhead"><div class="bico red">✖</div><div class="btitle">Motivos de Perda / Desqualificação</div><div class="bsub">via EZ</div></div>
+    <div class="bbody"><div class="mbar-list" id="fn-perdas"></div></div>
+  </div>
+
+</div>
+
+<!-- ─── ABA 3: PRODUTO & TICKET ─── -->
+<div id="panel-produto" class="tab-panel">
+
+  <div class="mkpi-row">
+    <div class="mkpi"><div class="mkpi-v"       id="pr-master">--</div><div class="mkpi-l">Kit Master</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-mini">--</div><div class="mkpi-l">Kit Mini</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-110">--</div><div class="mkpi-l">110v</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-220">--</div><div class="mkpi-l">220v</div></div>
+    <div class="mkpi"><div class="mkpi-v gold"  id="pr-ticket">--</div><div class="mkpi-l">Ticket Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v gold"  id="pr-fat">--</div><div class="mkpi-l">Faturado</div></div>
+  </div>
+
+  <div class="g3">
+    <div class="chart-box"><div class="ctitle">Modelo</div><canvas id="ch-modelo"></canvas></div>
+    <div class="chart-box"><div class="ctitle">Voltagem</div><canvas id="ch-volt"></canvas></div>
+    <div class="chart-box"><div class="ctitle">Forma de Pagamento</div><canvas id="ch-pgto"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">📈</div><div class="btitle">Vendas por Mês</div></div>
+      <div class="bbody" style="padding-top:12px"><canvas id="ch-vendas-mes" style="max-height:200px"></canvas></div>
+    </div>
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">💰</div><div class="btitle">Ticket por Canal de Origem</div></div>
+      <div class="bbody"><div class="mbar-list" id="pr-ticket-canal"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── ABA 4: PERFIL & ICP ─── -->
+<div id="panel-perfil" class="tab-panel">
+
+  <div class="sec-title">Perfil Real dos Compradores</div>
+
+  <div class="icp-demo-row">
+    <div class="icp-dc"><div class="icp-dc-v" id="icp-total-vendas">--</div><div class="icp-dc-l">Vendas Analisadas</div></div>
+    <div class="icp-dc"><div class="icp-dc-v" id="icp-ticket">--</div><div class="icp-dc-l">Ticket Médio</div></div>
+    <div class="icp-dc"><div class="icp-dc-v" id="icp-modelo">--</div><div class="icp-dc-l">Modelo Top</div></div>
+    <div class="icp-dc"><div class="icp-dc-v" id="icp-canal">--</div><div class="icp-dc-l">Canal Top</div></div>
+    <div class="icp-dc"><div class="icp-dc-v" id="icp-pgto">--</div><div class="icp-dc-l">Pagamento Top</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead blue"><div class="bico blue">📍</div><div class="btitle">Cidades que mais compram</div></div>
+      <div class="bbody"><div class="hbar-list" id="icp-cidades"></div></div>
+    </div>
+    <div class="block">
+      <div class="bhead blue"><div class="bico blue">🤝</div><div class="btitle">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
+      <div class="bbody"><div class="hbar-list" id="icp-parceiros"></div></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead green"><div class="bico green">📊</div><div class="btitle">Canal de Entrada</div><div class="bsub">leads por origem</div></div>
+      <div class="bbody"><div class="mbar-list" id="icp-canal-entry"></div></div>
+    </div>
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">🏆</div><div class="btitle">Win Rate por Canal</div><div class="bsub">vendas / leads</div></div>
+      <div class="bbody"><div class="mbar-list" id="icp-winrate"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── ABA 5: ATENDIMENTO ─── -->
+<div id="panel-atend" class="tab-panel">
+
+  <div class="mkpi-row">
+    <div class="mkpi"><div class="mkpi-v"  id="at-total">--</div><div class="mkpi-l">Atendimentos</div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-tpi">--</div><div class="mkpi-l">TPI Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-tma">--</div><div class="mkpi-l">TMA Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-iagente">--</div><div class="mkpi-l">Interações Agente</div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-icliente">--</div><div class="mkpi-l">Interações Cliente</div></div>
+  </div>
+
+  <div class="chart-box">
+    <div class="ctitle">Volume Diário de Atendimentos</div>
+    <canvas id="ch-atend-dia" style="max-height:140px"></canvas>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead"><div class="bico red">🏷</div><div class="btitle">Classificações</div><div class="bsub">resultado do atendimento</div></div>
+      <div class="bbody"><div class="mbar-list" id="at-classificacoes"></div></div>
+    </div>
+    <div class="block">
+      <div class="bhead blue"><div class="bico blue">👤</div><div class="btitle">Performance por Agente</div></div>
+      <div class="bbody">
+        <div class="stbl-wrap">
+          <table class="stbl">
+            <thead><tr>
+              <th>Agente</th>
+              <th style="text-align:center">Atend.</th>
+              <th style="text-align:center">Vendas</th>
+              <th style="text-align:right">Conv.</th>
+            </tr></thead>
+            <tbody id="at-agentes-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="chart-box">
+      <div class="ctitle">Receptivo vs Ativo</div>
+      <canvas id="ch-receptivo"></canvas>
+    </div>
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">⚡</div><div class="btitle">TPI por Faixa</div><div class="bsub">impacto na conversão</div></div>
+      <div class="bbody">
+        <div class="mbar-list" id="at-tpi-faixas"></div>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--txt-faint);line-height:1.6" id="at-tpi-insight"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── ABA 6: MARKETING & ADS ─── -->
+<div id="panel-mkt" class="tab-panel">
+
+  <div class="mkpi-row">
+    <div class="mkpi"><div class="mkpi-v gold"  id="mk-invest">--</div><div class="mkpi-l">Investimento Meta</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-leads-ads">--</div><div class="mkpi-l">Leads (Canal)</div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">CPL</div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-conv-ads">--</div><div class="mkpi-l">Conversão</div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est.</div></div>
+  </div>
+
+  <div class="g2">
+    <div>
+      <div class="camp-card-full wpp mb">
+        <div class="ccf-head"><div class="ccf-ico">💬</div><div><div class="ccf-name">WPP Button</div><div class="ccf-desc">Botão WhatsApp nos anúncios</div></div></div>
+        <div class="ccf-stats">
+          <div class="ccf-stat"><div class="ccf-sv" id="ccf-wpp-leads">--</div><div class="ccf-sl">Leads</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-wpp-vendas">--</div><div class="ccf-sl">Vendas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-wpp-perdas">--</div><div class="ccf-sl">Perdas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat conv"><div class="ccf-sv" id="ccf-wpp-conv">--</div><div class="ccf-sl">Conv.</div></div>
+        </div>
+        <div class="ccf-bar-wrap"><div class="ccf-bar" id="ccf-wpp-bar" style="width:0%"></div></div>
+      </div>
+      <div class="camp-card-full form mb">
+        <div class="ccf-head"><div class="ccf-ico">📋</div><div><div class="ccf-name">Form Direto</div><div class="ccf-desc">Formulário de contato nos anúncios</div></div></div>
+        <div class="ccf-stats">
+          <div class="ccf-stat"><div class="ccf-sv" id="ccf-form-leads">--</div><div class="ccf-sl">Leads</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-form-vendas">--</div><div class="ccf-sl">Vendas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-form-perdas">--</div><div class="ccf-sl">Perdas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat conv"><div class="ccf-sv" id="ccf-form-conv">--</div><div class="ccf-sl">Conv.</div></div>
+        </div>
+        <div class="ccf-bar-wrap"><div class="ccf-bar" id="ccf-form-bar" style="width:0%"></div></div>
+      </div>
+      <div class="camp-card-full org">
+        <div class="ccf-head"><div class="ccf-ico">🌱</div><div><div class="ccf-name">Orgânico</div><div class="ccf-desc">Indicação, ativo e outros</div></div></div>
+        <div class="ccf-stats">
+          <div class="ccf-stat"><div class="ccf-sv" id="ccf-org-leads">--</div><div class="ccf-sl">Leads</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-org-vendas">--</div><div class="ccf-sl">Vendas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-org-perdas">--</div><div class="ccf-sl">Perdas</div></div>
+          <div class="ccf-sep"></div>
+          <div class="ccf-stat conv"><div class="ccf-sv" id="ccf-org-conv">--</div><div class="ccf-sl">Conv.</div></div>
+        </div>
+        <div class="ccf-bar-wrap"><div class="ccf-bar" id="ccf-org-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="block mb">
+        <div class="bhead blue"><div class="bico blue">📊</div><div class="btitle">Funil por Origem</div></div>
+        <div class="bbody" style="padding:0 16px">
+          <table class="stbl">
+            <thead><tr>
+              <th>Origem</th>
+              <th style="text-align:center">Leads</th>
+              <th style="text-align:center">Vendas</th>
+              <th style="text-align:center">Perdas</th>
+              <th style="text-align:right">Conv.</th>
+            </tr></thead>
+            <tbody id="mk-funil-origem-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="ctitle">Distribuição de Leads por Canal</div>
+        <canvas id="ch-leads-canal"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">📅</div><div class="btitle">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
+      <div class="bbody" style="padding-top:12px"><canvas id="ch-diasemana" style="max-height:160px"></canvas></div>
+    </div>
+    <div class="block">
+      <div class="bhead gold"><div class="bico gold">📈</div><div class="btitle">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
+      <div class="bbody" style="padding-top:12px"><canvas id="ch-invest-leads" style="max-height:160px"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<footer class="footer">
+  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIGURAÇÃO — Substituir pelos URLs reais do Sheets
+// Arquivo > Compartilhar > Publicar na Web > aba > CSV
+// ═══════════════════════════════════════════════════════
+const URLS = {
+  rd:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=1929371575&single=true&output=csv',
+  ez:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=515237738&single=true&output=csv',
+  ads: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=897885375&single=true&output=csv',
+};
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let rawRD=[], rawEZ=[], rawADS=[];
+let charts={};
+let dateFrom=null, dateTo=null;
+let activeTab='visao';
+let autoTimer=null;
+
+// ═══════════════════════════════════════════════════════
+// CHART DEFAULTS
+// ═══════════════════════════════════════════════════════
+Chart.defaults.color='#6B5C40';
+Chart.defaults.borderColor='rgba(255,200,120,0.08)';
+Chart.defaults.font.family="'Barlow',sans-serif";
+const C=['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa','#e05c1a','#34d399','#FFA62C'];
+const DONUT={plugins:{legend:{position:'right',labels:{padding:10,font:{size:10},boxWidth:8,color:'#A89870'}}},cutout:'64%',responsive:true,maintainAspectRatio:true};
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  activeTab=name;
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+const fmt=d=>d.toISOString().split('T')[0];
+
+function parseDate(s){
+  if(!s||s==='-'||!s.trim()) return null;
+  const p=s.trim().split(' '),dp=p[0].split('/');
+  if(dp.length<3) return null;
+  const [dd,mm,yyyy]=dp.map(Number);
+  if(isNaN(dd)||isNaN(mm)||isNaN(yyyy)) return null;
+  if(p[1]){const[hh,mi]=p[1].split(':').map(Number);return new Date(yyyy,mm-1,dd,hh||0,mi||0);}
+  return new Date(yyyy,mm-1,dd);
+}
+
+function parseMin(s){
+  if(!s||s==='-'||s==='0') return null;
+  const p=s.split(':');
+  if(p.length===3) return +p[0]*60+ +p[1]+ +p[2]/60;
+  if(p.length===2) return +p[0]*60+ +p[1];
+  return null;
+}
+function fmtMin(m){
+  if(m===null||isNaN(m)) return '--';
+  const h=Math.floor(m/60),mn=Math.floor(m%60),s=Math.round((m%1)*60);
+  if(h>0) return h+'h '+mn+'m';
+  if(mn>0) return mn+'m'+(s?' '+s+'s':'');
+  return Math.round(m*60)+'s';
+}
+function fmtBRL(v){return v&&!isNaN(v)?'R$'+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'--';}
+function fmtBRLk(v){
+  if(!v||isNaN(v)) return '--';
+  if(v>=1000000) return 'R$'+Math.round(v/100000)/10+'M';
+  if(v>=1000) return 'R$'+Math.round(v/1000)+'k';
+  return fmtBRL(v);
+}
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
+function normPhone(s){if(!s) return '';return s.replace(/\D/g,'').slice(-11);}
+
+function parseProduto(s){
+  if(!s) return {modelo:'',voltagem:''};
+  const low=s.toLowerCase();
+  return {
+    modelo:low.includes('mini')?'Mini':low.includes('master')?'Master':'',
+    voltagem:low.includes('110')?'110v':low.includes('220')?'220v':''
+  };
+}
+
+function parseCampanha(s){
+  if(!s||!s.trim()) return 'Orgânico';
+  const low=s.toLowerCase();
+  if(low.includes('botao wpp')||low.includes('botão wpp')) return 'WPP Button';
+  if(low.includes('form direto')||low.includes('form')) return 'Form Direto';
+  return 'Orgânico';
+}
+
+function isLoja(r){return !!(r['Vendedor Responsável']&&r['Vendedor Responsável'].trim());}
+
+function estadoNorm(r){
+  const e=(r['Estado']||'').trim();
+  if(['Ganho','Vendida','Vendido','Fechado','Won'].includes(e)) return 'Ganho';
+  if(['Perdido','Perdida','Lost','Cancelado'].includes(e)) return 'Perdido';
+  return 'Em Andamento';
+}
+
+// ═══════════════════════════════════════════════════════
+// CSV
+// ═══════════════════════════════════════════════════════
+function parseCSV(txt){
+  const lines=txt.replace(/\r/g,'').split('\n').filter(l=>l.trim());
+  if(!lines.length) return [];
+  let start=0;
+  if(lines[0].toLowerCase().startsWith('sep=')) start=1;
+  const firstLine=lines[start].replace(/^﻿/,'');
+  const delim=firstLine.indexOf(';')>firstLine.indexOf(',')&&firstLine.indexOf(';')>-1?';':',';
+  const hdr=firstLine.split(delim).map(h=>h.trim().replace(/^"|"$/g,''));
+  return lines.slice(start+1).map(line=>{
+    const vals=splitCSV(line,delim),obj={};
+    hdr.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''));
+    return obj;
+  });
+}
+function splitCSV(l,delim=','){
+  const r=[];let cur='',inQ=false;
+  for(let i=0;i<l.length;i++){
+    const c=l[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===delim&&!inQ){r.push(cur);cur='';}
+    else{cur+=c;}
+  }
+  r.push(cur);return r;
+}
+
+// ═══════════════════════════════════════════════════════
+// DEDUP EZ — por Protocolo, mantém maior interações do agente
+// ═══════════════════════════════════════════════════════
+function dedupEZ(arr){
+  const map={};
+  arr.forEach(r=>{
+    if((r['Tipo']||'').toLowerCase()!=='humano') return;
+    const proto=(r['Protocolo']||'').toString().trim();
+    if(!proto) return;
+    const ia=parseInt(r['Interações Agente']||'0')||0;
+    const dt=parseDate(r['Criado em']);
+    if(!map[proto]){map[proto]={...r,_ia:ia,_dt:dt};}
+    else{
+      const prev=map[proto];
+      if(ia>prev._ia||(ia===prev._ia&&dt&&prev._dt&&dt<prev._dt)) map[proto]={...r,_ia:ia,_dt:dt};
+    }
+  });
+  return Object.values(map);
+}
+
+// ═══════════════════════════════════════════════════════
+// FREQ
+// ═══════════════════════════════════════════════════════
+function freq(arr,key,skipEmpty=true){
+  const map={};
+  arr.forEach(r=>{
+    const v=(typeof r==='object'&&r!==null&&key?r[key]||'':r||'').toString().trim();
+    if(skipEmpty&&(!v||v==='-'||['nada','nenhum'].includes(v.toLowerCase()))) return;
+    map[v]=(map[v]||0)+1;
+  });
+  return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTER
+// ═══════════════════════════════════════════════════════
+function filtroCanal(){return document.getElementById('filtroCanal')?.value||'todos';}
+
+function filterRD(byFechamento=false){
+  const canal=filtroCanal();
+  return rawRD.filter(r=>{
+    const dCria=parseDate(r['Data de criação']);
+    const dFech=parseDate(r['Data de fechamento']);
+    const d=byFechamento?(dFech||dCria):(dFech||dCria);
+    if(!d) return false;
+    if(dateFrom&&d<dateFrom) return false;
+    if(dateTo&&d>dateTo) return false;
+    if(canal==='germania'&&isLoja(r)) return false;
+    if(canal==='loja'&&!isLoja(r)) return false;
+    return true;
+  });
+}
+function filterRDCriacao(){
+  const canal=filtroCanal();
+  return rawRD.filter(r=>{
+    const d=parseDate(r['Data de criação']);
+    if(!d) return false;
+    if(dateFrom&&d<dateFrom) return false;
+    if(dateTo&&d>dateTo) return false;
+    if(canal==='germania'&&isLoja(r)) return false;
+    if(canal==='loja'&&!isLoja(r)) return false;
+    return true;
+  });
+}
+function filterEZ(){
+  return dedupEZ(rawEZ).filter(r=>{
+    const d=parseDate(r['Criado em']);
+    if(!d) return false;
+    if(dateFrom&&d<dateFrom) return false;
+    if(dateTo&&d>dateTo) return false;
+    return true;
+  });
+}
+function filterADS(){
+  return rawADS.filter(r=>{
+    const d=parseDate(r['Início dos relatórios']||r['Data']||'');
+    if(!d) return false;
+    if(dateFrom&&d<dateFrom) return false;
+    if(dateTo&&d>dateTo) return false;
+    const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));
+    return v>0;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// CHART HELPERS
+// ═══════════════════════════════════════════════════════
+function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts[id];}}
+
+function donut(id,labels,data,colors){
+  dc(id);const ctx=document.getElementById(id);if(!ctx) return;
+  charts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors||C,borderWidth:0}]},options:{...DONUT}});
+}
+
+function lineChart(id,labels,datasets){
+  dc(id);const ctx=document.getElementById(id);if(!ctx) return;
+  charts[id]=new Chart(ctx,{type:'line',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:datasets.length>1,labels:{color:'#A89870',font:{size:10},boxWidth:8}}},
+    scales:{
+      x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9},maxRotation:45}},
+      y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}},beginAtZero:true}
+    }
+  }});
+}
+
+function barChart(id,labels,datasets){
+  dc(id);const ctx=document.getElementById(id);if(!ctx) return;
+  charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets},options:{
+    responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:datasets.length>1,labels:{color:'#A89870',font:{size:10},boxWidth:8}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#6B5C40',font:{size:9},maxRotation:45}},
+      y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}},beginAtZero:true}
+    }
+  }});
+}
+
+function mbar(id,entries,color='gold',max=10){
+  const el=document.getElementById(id);if(!el) return;
+  const top=entries.slice(0,max);
+  if(!top.length){el.innerHTML='<div class="empty"><div class="ei">🔍</div>Sem dados no período</div>';return;}
+  const mx=top[0][1]||1;
+  el.innerHTML=top.map(([l,v])=>`
+    <div class="mbar-item">
+      <div class="mbar-top"><span class="mbar-lbl" title="${l}">${l||'(vazio)'}</span><span class="mbar-val">${v}</span></div>
+      <div class="mbar-track"><div class="mbar-fill ${color}" style="width:${Math.round(Number(String(v).replace('%',''))/Number(String(mx).replace('%',''))*100)||0}%"></div></div>
+    </div>`).join('');
+}
+
+function hbarHtml(id,items,color=''){
+  const el=document.getElementById(id);if(!el) return;
+  if(!items.length){el.innerHTML='<div class="empty"><div class="ei">📊</div>Sem dados</div>';return;}
+  const mx=items[0][1]||1;
+  el.innerHTML=items.map(([l,v])=>`
+    <div class="hbar-item">
+      <div class="hbar-name" title="${l}">${l}</div>
+      <div class="hbar-track"><div class="hbar-fill ${color}" style="width:${Math.round(v/mx*100)}%"></div></div>
+      <div class="hbar-val">${v}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// DATES UI
+// ═══════════════════════════════════════════════════════
+function initDates(){
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  const f=new Date(y,m,1),t=new Date(y,m+1,0);
+  document.getElementById('dateFrom').value=fmt(f);
+  document.getElementById('dateTo').value=fmt(t);
+  dateFrom=f; dateTo=t;
+}
+function setShortcut(type,el){
+  document.querySelectorAll('.btn-sh').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  let f,t;
+  if(type==='today'){f=new Date(y,m,n.getDate());t=new Date(y,m,n.getDate());}
+  else if(type==='7d'){f=new Date(+n-7*864e5);t=n;}
+  else if(type==='15d'){f=new Date(+n-15*864e5);t=n;}
+  else if(type==='thismonth'){f=new Date(y,m,1);t=new Date(y,m+1,0);}
+  else if(type==='lastmonth'){f=new Date(y,m-1,1);t=new Date(y,m,0);}
+  else if(type==='quarter'){f=new Date(+n-90*864e5);t=n;}
+  else if(type==='all'){f=new Date(2024,0,1);t=new Date(2030,11,31);}
+  document.getElementById('dateFrom').value=fmt(f);
+  document.getElementById('dateTo').value=fmt(t);
+  dateFrom=f; dateTo=t; renderAll();
+}
+function applyFilter(){
+  const df=document.getElementById('dateFrom').value;
+  const dt=document.getElementById('dateTo').value;
+  if(df) dateFrom=new Date(df);
+  if(dt){dateTo=new Date(dt);dateTo.setHours(23,59,59);}
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — HEADER
+// ═══════════════════════════════════════════════════════
+function renderHeader(rd){
+  const rdC=filterRDCriacao();
+  const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
+  const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
+  const ticket=vendGerm.length?fat/vendGerm.length:0;
+  document.getElementById('hkv-leads').textContent=rdC.length||'0';
+  document.getElementById('hkv-vendas').textContent=ganho.length;
+  document.getElementById('hks-vendas').textContent=ganho.length===1?'venda fechada':'vendas fechadas';
+  document.getElementById('hkv-fat').textContent=fmtBRLk(fat);
+  document.getElementById('hkv-conv').textContent=conv+'%';
+  document.getElementById('hks-conv').textContent=vendGerm.length+' de '+decididas.length+' decididas';
+  document.getElementById('hkv-ticket').textContent=fmtBRLk(ticket);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — VISÃO GERAL
+// ═══════════════════════════════════════════════════════
+function renderVisaoGeral(rd,ez,ads){
+  const rdC=filterRDCriacao();
+  const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const vendLoja=ganho.filter(r=>isLoja(r));
+  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
+  const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
+  const ticket=vendGerm.length?fat/vendGerm.length:0;
+  const ciclos=vendGerm.map(r=>{
+    const dc=parseDate(r['Data de criação']),df=parseDate(r['Data de fechamento']);
+    if(!dc||!df) return null;
+    return Math.max(0,Math.round((df-dc)/864e5));
+  }).filter(v=>v!==null);
+  const tpis=ez.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+
+  document.getElementById('vg-leads').textContent=rdC.length||'0';
+  document.getElementById('vg-vendas').textContent=vendGerm.length;
+  document.getElementById('vg-loja').textContent=vendLoja.length;
+  document.getElementById('vg-fat').textContent=fmtBRLk(fat);
+  document.getElementById('vg-conv').textContent=conv+'%';
+  document.getElementById('vg-ticket').textContent=fmtBRLk(ticket);
+  document.getElementById('vg-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+'d':'--';
+  document.getElementById('vg-tpi').textContent=fmtMin(avg(tpis));
+
+  // Leads por dia
+  const diasMap={};
+  rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
+  const dk=Object.keys(diasMap).sort();
+  lineChart('ch-leads-dia',dk.map(k=>k.slice(5)),[{
+    label:'Leads',data:dk.map(k=>diasMap[k]),
+    borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.12)',tension:0.3,pointRadius:2,fill:true
+  }]);
+
+  // Classificações EZ
+  const classEZ=freq(ez,'Classificações');
+  if(classEZ.length) donut('ch-class-visao',classEZ.map(e=>e[0]),classEZ.map(e=>e[1]));
+
+  // Canal Germânia breakdown
+  const canais=[
+    {key:'WPP Button',label:'💬 WPP Button',cls:'org'},
+    {key:'Form Direto',label:'📋 Form Direto',cls:'ads'},
+    {key:'Orgânico',label:'🌱 Orgânico',cls:'org'},
+  ];
+  const lojaLeads=rdC.filter(r=>isLoja(r));
+  const canalRows=[
+    ...canais.map(({key,label,cls})=>{
+      const leads=rdC.filter(r=>parseCampanha(r['Campanha'])===key&&!isLoja(r));
+      const v=leads.filter(r=>estadoNorm(r)==='Ganho').length;
+      return {label,leads:leads.length,v,cls};
+    }),
+    {label:'🤝 Venda de Loja',leads:lojaLeads.length,v:lojaLeads.filter(r=>estadoNorm(r)==='Ganho').length,cls:'loja'},
+  ];
+  const canalBody=document.getElementById('vg-canal-body');
+  if(canalBody) canalBody.innerHTML=canalRows.map(({label,leads,v,cls})=>`
+    <div class="ao-row ${cls}" style="margin-bottom:6px">
+      <div class="ao-ico">${label.split(' ')[0]}</div>
+      <div class="ao-label"><h5>${label.slice(2).trim()}</h5><p>${leads} leads</p></div>
+      <div class="ao-stats">
+        <div><div class="ao-stat-v" style="color:var(--s-green)">${v}</div><div class="ao-stat-l">Vendas</div></div>
+        <div><div class="ao-stat-v">${leads?Math.round(v/leads*100):0}%</div><div class="ao-stat-l">Conv.</div></div>
+      </div>
+    </div>`).join('');
+  const el=document.getElementById('vg-canal-periodo');
+  if(el) el.textContent=rdC.length+' leads';
+
+  // Top cidades (vendas)
+  const cidades=freq(ganho,'Unidades de atendimento').slice(0,8);
+  hbarHtml('vg-cidades',cidades,'gold');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — FUNIL & CICLO
+// ═══════════════════════════════════════════════════════
+function renderFunil(rd,ez){
+  const rdC=filterRDCriacao();
+  const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
+  const perdido=rd.filter(r=>estadoNorm(r)==='Perdido');
+  const andamento=rd.filter(r=>estadoNorm(r)==='Em Andamento');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const ciclos=vendGerm.map(r=>{
+    const dc=parseDate(r['Data de criação']),df=parseDate(r['Data de fechamento']);
+    if(!dc||!df) return null;
+    return Math.max(0,Math.round((df-dc)/864e5));
+  }).filter(v=>v!==null);
+
+  document.getElementById('fn-leads').textContent=rdC.length;
+  document.getElementById('fn-andamento').textContent=andamento.length;
+  document.getElementById('fn-ganho').textContent=ganho.length;
+  document.getElementById('fn-perdido').textContent=perdido.length;
+  document.getElementById('fn-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+' dias':'--';
+
+  // Funil por etapa
+  const etapasOrder=['Atendimento / Demonstração','Apresentação','Negociação','Proposta','Cadastro no Sistema','Preparação da Chopeira'];
+  const etapaMap={};
+  rdC.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMap[e]=(etapaMap[e]||0)+1;});
+  const etapas=Object.entries(etapaMap).sort((a,b)=>{
+    const ia=etapasOrder.indexOf(a[0]),ib=etapasOrder.indexOf(b[0]);
+    if(ia>=0&&ib>=0) return ia-ib;
+    if(ia>=0) return -1;if(ib>=0) return 1;
+    return b[1]-a[1];
+  });
+  const totalFunil=Math.max(...etapas.map(e=>e[1]),1);
+  const funilEl=document.getElementById('funil-etapas');
+  if(funilEl){
+    funilEl.innerHTML=etapas.length?etapas.map(([e,n])=>`
+      <div class="funil-item">
+        <div class="funil-etapa" title="${e}">${e}</div>
+        <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/totalFunil*100)}%"></div></div>
+        <div class="funil-count">${n}</div>
+        <div class="funil-pct">${Math.round(n/totalFunil*100)}%</div>
+      </div>`).join('')
+    :'<div class="empty"><div class="ei">📊</div>Sem dados no período</div>';
+  }
+
+  // Ciclo faixas
+  const fx={'0-7d':0,'8-14d':0,'15-30d':0,'31-60d':0,'60+d':0};
+  ciclos.forEach(c=>{if(c<=7)fx['0-7d']++;else if(c<=14)fx['8-14d']++;else if(c<=30)fx['15-30d']++;else if(c<=60)fx['31-60d']++;else fx['60+d']++;});
+  barChart('ch-ciclo',Object.keys(fx),[{label:'Vendas',data:Object.values(fx),backgroundColor:['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa'],borderWidth:0}]);
+  mbar('ciclo-faixas',Object.entries(fx).filter(([,v])=>v>0),'gold');
+
+  // Aging: deals Em Andamento parados > 7 dias
+  const hoje=new Date();
+  const aging=rawRD.filter(r=>estadoNorm(r)==='Em Andamento')
+    .map(r=>{const d=parseDate(r['Data de criação']);if(!d) return null;return {nome:r['Nome']||'(sem nome)',etapa:(r['Etapa']||'').replace('Atendimento / Demonstração','Atendimento'),dias:Math.round((hoje-d)/864e5)};})
+    .filter(v=>v&&v.dias>7).sort((a,b)=>b.dias-a.dias).slice(0,10);
+  const agingEl=document.getElementById('aging-list');
+  if(agingEl) agingEl.innerHTML=aging.length?aging.map(a=>`
+    <div class="aging-item ${a.dias>30?'hot':a.dias>14?'warm':'ok'}">
+      <div class="aging-name">${a.nome}</div>
+      <div class="aging-etapa">${a.etapa}</div>
+      <div class="aging-dias ${a.dias>30?'hot':'warm'}">${a.dias}d</div>
+    </div>`).join('')
+  :'<div class="empty"><div class="ei">✅</div>Nenhum deal parado acima de 7 dias</div>';
+
+  // Motivos de perda via EZ
+  const perdaEZ=ez.filter(r=>{const c=(r['Classificações']||'').toLowerCase();return c.includes('perda')||c.includes('desqualificado');});
+  mbar('fn-perdas',freq(perdaEZ,'Classificações'),'red');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — PRODUTO & TICKET
+// ═══════════════════════════════════════════════════════
+function renderProduto(rd){
+  const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const produtos=ganho.map(r=>parseProduto(r['Produtos']));
+  const master=produtos.filter(p=>p.modelo==='Master').length;
+  const mini=produtos.filter(p=>p.modelo==='Mini').length;
+  const v110=produtos.filter(p=>p.voltagem==='110v').length;
+  const v220=produtos.filter(p=>p.voltagem==='220v').length;
+  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const ticket=vendGerm.length?fat/vendGerm.length:0;
+
+  document.getElementById('pr-master').textContent=master;
+  document.getElementById('pr-mini').textContent=mini||'0';
+  document.getElementById('pr-110').textContent=v110;
+  document.getElementById('pr-220').textContent=v220;
+  document.getElementById('pr-ticket').textContent=fmtBRLk(ticket);
+  document.getElementById('pr-fat').textContent=fmtBRLk(fat);
+
+  if(master||mini)  donut('ch-modelo',['Master','Mini'],[master,mini||0],['#C92B1E','#C8941A']);
+  if(v110||v220)    donut('ch-volt',['110v','220v'],[v110,v220],['#5B7FA6','#1E7A42']);
+  const pgto=freq(ganho,'Forma de pagamento');
+  if(pgto.length)   donut('ch-pgto',pgto.map(e=>e[0]),pgto.map(e=>e[1]));
+
+  // Vendas por mês
+  const meses={};
+  ganho.forEach(r=>{const d=parseDate(r['Data de fechamento']);if(d){const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');meses[k]=(meses[k]||0)+1;}});
+  const mk=Object.keys(meses).sort();
+  barChart('ch-vendas-mes',mk,[{label:'Vendas',data:mk.map(k=>meses[k]),backgroundColor:'rgba(201,43,30,0.7)',borderColor:'#C92B1E',borderWidth:1}]);
+
+  // Ticket por canal
+  const canalT={};
+  vendGerm.forEach(r=>{
+    const canal=parseCampanha(r['Campanha']);
+    const v=parseFloat((r['Valor Único']||'0').replace(',','.'));
+    if(!isNaN(v)&&v>0){if(!canalT[canal]) canalT[canal]={sum:0,n:0};canalT[canal].sum+=v;canalT[canal].n++;}
+  });
+  mbar('pr-ticket-canal',Object.entries(canalT).map(([c,d])=>[c,fmtBRL(d.sum/d.n)]).sort((a,b)=>parseInt(b[1].replace(/\D/g,''))-parseInt(a[1].replace(/\D/g,''))),'gold');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — PERFIL & ICP
+// ═══════════════════════════════════════════════════════
+function renderPerfil(rd){
+  const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const ticket=vendGerm.length?fat/vendGerm.length:0;
+  const topProduto=freq(vendGerm,'Produtos')[0]?.[0]||'';
+  const topModelo=parseProduto(topProduto).modelo||'--';
+  const rdC=filterRDCriacao();
+  const canalFreq=freq(rdC.filter(r=>!isLoja(r)).map(r=>({c:parseCampanha(r['Campanha'])}).c),'',false);
+  const topCanal=freq(rdC.filter(r=>!isLoja(r)).map(r=>{return {c:parseCampanha(r['Campanha'])};}),undefined,false);
+  // simpler:
+  const canalMap={};
+  rdC.filter(r=>!isLoja(r)).forEach(r=>{const c=parseCampanha(r['Campanha']);canalMap[c]=(canalMap[c]||0)+1;});
+  const topCanalName=Object.entries(canalMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'--';
+  const topPgto=freq(vendGerm,'Forma de pagamento')[0]?.[0]||'--';
+
+  document.getElementById('icp-total-vendas').textContent=vendGerm.length||'0';
+  document.getElementById('icp-ticket').textContent=fmtBRLk(ticket);
+  document.getElementById('icp-modelo').textContent=topModelo;
+  document.getElementById('icp-canal').textContent=topCanalName;
+  document.getElementById('icp-pgto').textContent=topPgto;
+
+  hbarHtml('icp-cidades',freq(ganho,'Unidades de atendimento').slice(0,8),'gold');
+  const loja=ganho.filter(r=>isLoja(r));
+  const parceiros=freq(loja,'Vendedor Responsável').slice(0,8);
+  hbarHtml('icp-parceiros',parceiros.length?parceiros:[['Sem vendas de loja no período',0]],'blue');
+
+  // Canal de entrada (todos os leads)
+  const canalEntry=Object.entries(canalMap).sort((a,b)=>b[1]-a[1]);
+  mbar('icp-canal-entry',canalEntry,'red');
+
+  // Win rate por canal
+  const canalWin={};
+  rdC.filter(r=>!isLoja(r)).forEach(r=>{
+    const c=parseCampanha(r['Campanha']);
+    if(!canalWin[c]) canalWin[c]={leads:0,vendas:0};
+    canalWin[c].leads++;
+    if(estadoNorm(r)==='Ganho') canalWin[c].vendas++;
+  });
+  const winRate=Object.entries(canalWin).filter(([,d])=>d.leads>0)
+    .map(([c,d])=>[c+' ('+d.leads+')',Math.round(d.vendas/d.leads*100)+'%'])
+    .sort((a,b)=>parseInt(b[1])-parseInt(a[1]));
+  mbar('icp-winrate',winRate,'green');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — ATENDIMENTO
+// ═══════════════════════════════════════════════════════
+function renderAtendimento(ez,rd){
+  document.getElementById('at-total').textContent=ez.length||'0';
+  const tpis=ez.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+  const tmas=ez.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
+  const iA=ez.map(r=>parseInt(r['Interações Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
+  const iC=ez.map(r=>parseInt(r['Interações Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
+  document.getElementById('at-tpi').textContent=fmtMin(avg(tpis));
+  document.getElementById('at-tma').textContent=fmtMin(avg(tmas));
+  document.getElementById('at-iagente').textContent=iA.length?Math.round(avg(iA)*10)/10+'x':'--';
+  document.getElementById('at-icliente').textContent=iC.length?Math.round(avg(iC)*10)/10+'x':'--';
+
+  // Volume diário
+  const diasMap={};
+  ez.forEach(r=>{const d=parseDate(r['Criado em']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
+  const dk=Object.keys(diasMap).sort();
+  lineChart('ch-atend-dia',dk.map(k=>k.slice(5)),[{
+    label:'Atendimentos',data:dk.map(k=>diasMap[k]),
+    borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.12)',tension:0.3,pointRadius:2,fill:true
+  }]);
+
+  // Classificações
+  mbar('at-classificacoes',freq(ez,'Classificações'),'red');
+
+  // Performance agentes — join por telefone
+  const ganhoPhones=new Set(rd.filter(r=>estadoNorm(r)==='Ganho').map(r=>normPhone(r['Telefone'])).filter(Boolean));
+  const agentes={};
+  ez.forEach(r=>{
+    const nome=(r['Nome do Agente']||'').trim();
+    if(!nome||nome.toLowerCase().includes('bot')) return;
+    if(!agentes[nome]) agentes[nome]={atend:0,vendas:0};
+    agentes[nome].atend++;
+    const p=normPhone(r['Telefone']);
+    if(p&&ganhoPhones.has(p)) agentes[nome].vendas++;
+  });
+  const tbody=document.getElementById('at-agentes-body');
+  if(tbody) tbody.innerHTML=Object.entries(agentes).sort((a,b)=>b[1].atend-a[1].atend).slice(0,10).map(([nome,d])=>{
+    const convPct=d.atend?Math.round(d.vendas/d.atend*100):0;
+    const cls=convPct>=15?'hi':convPct>=5?'mid':'lo';
+    return `<tr>
+      <td><strong>${nome}</strong></td>
+      <td style="text-align:center">${d.atend}</td>
+      <td style="text-align:center"><span class="tv green">${d.vendas}</span></td>
+      <td><span class="conv-badge ${cls}">${convPct}%</span></td>
+    </tr>`;
+  }).join('');
+
+  // Receptivo vs Ativo
+  const recep=ez.filter(r=>(r['Ativo']||'').toUpperCase()==='RECEPTIVO').length;
+  const ativo=ez.filter(r=>(r['Ativo']||'').toUpperCase()==='ATIVO').length;
+  if(recep||ativo) donut('ch-receptivo',['Receptivo','Ativo'],[recep,ativo],['#C92B1E','#5B7FA6']);
+
+  // TPI por faixa x conversão
+  const faixasTPI={'Ate 5min':{n:0,v:0},'5-15min':{n:0,v:0},'15-30min':{n:0,v:0},'30-60min':{n:0,v:0},'60+min':{n:0,v:0}};
+  ez.forEach(r=>{
+    const tpi=parseMin(r['Tempo para Primeira Interação']||r['TPI']);
+    if(tpi===null) return;
+    const p=normPhone(r['Telefone']);
+    const vendeu=p&&ganhoPhones.has(p);
+    const faixa=tpi<=5?'Ate 5min':tpi<=15?'5-15min':tpi<=30?'15-30min':tpi<=60?'30-60min':'60+min';
+    faixasTPI[faixa].n++;
+    if(vendeu) faixasTPI[faixa].v++;
+  });
+  const tpiFx=Object.entries(faixasTPI).filter(([,d])=>d.n>0).map(([f,d])=>[f+' ('+d.n+')',Math.round(d.v/d.n*100)+'%']);
+  mbar('at-tpi-faixas',tpiFx,'gold');
+  const best=tpiFx.reduce((b,c)=>(!b||parseInt(c[1])>parseInt(b[1]))?c:b,null);
+  const ins=document.getElementById('at-tpi-insight');
+  if(ins&&best) ins.textContent='Melhor conversão: leads respondidos '+best[0].split('(')[0].trim()+' converteram '+best[1]+' das vezes.';
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER — MARKETING & ADS
+// ═══════════════════════════════════════════════════════
+function renderMarketing(rd,ads){
+  const rdC=filterRDCriacao().filter(r=>!isLoja(r));
+  const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
+  const fat=ganhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const investTotal=ads.reduce((s,r)=>{const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
+  const cpl=leadsAds?investTotal/leadsAds:0;
+  const roi=investTotal?fat/investTotal:0;
+  const conv=rdC.length?Math.round(ganhoGerm.length/rdC.length*100):0;
+
+  document.getElementById('mk-invest').textContent=fmtBRLk(investTotal)||'--';
+  document.getElementById('mk-leads-ads').textContent=leadsAds||rdC.length;
+  document.getElementById('mk-vendas-ads').textContent=ganhoGerm.length;
+  document.getElementById('mk-cpl').textContent=cpl?fmtBRLk(cpl):'--';
+  document.getElementById('mk-conv-ads').textContent=conv+'%';
+  document.getElementById('mk-roi').textContent=roi?roi.toFixed(1)+'x':'--';
+
+  function canalStats(canal){
+    const leads=rdC.filter(r=>parseCampanha(r['Campanha'])===canal);
+    const vendas=leads.filter(r=>estadoNorm(r)==='Ganho').length;
+    const perdas=leads.filter(r=>estadoNorm(r)==='Perdido').length;
+    return {leads:leads.length,vendas,perdas,conv:leads.length?Math.round(vendas/leads.length*100):0};
+  }
+  const wppS=canalStats('WPP Button'),formS=canalStats('Form Direto'),orgS=canalStats('Orgânico');
+  const totalL=wppS.leads+formS.leads+orgS.leads||1;
+
+  const setCard=(pfx,s,total)=>{
+    ['leads','vendas','perdas','conv'].forEach(k=>{ const el=document.getElementById('ccf-'+pfx+'-'+k); if(el) el.textContent=k==='conv'?s[k]+'%':s[k]; });
+    const bar=document.getElementById('ccf-'+pfx+'-bar');
+    if(bar) bar.style.width=Math.round(s.leads/total*100)+'%';
+  };
+  setCard('wpp',wppS,totalL); setCard('form',formS,totalL); setCard('org',orgS,totalL);
+
+  // Tabela funil por origem
+  const tbody=document.getElementById('mk-funil-origem-body');
+  if(tbody) tbody.innerHTML=[['WPP Button',wppS,'wpp'],['Form Direto',formS,'form'],['Orgânico',orgS,'org']].map(([n,s,cls])=>`
+    <tr>
+      <td><span class="badge ${cls}">${n}</span></td>
+      <td style="text-align:center">${s.leads}</td>
+      <td style="text-align:center"><span class="tv green">${s.vendas}</span></td>
+      <td style="text-align:center"><span class="tv red">${s.perdas}</span></td>
+      <td><span class="conv-badge ${s.conv>=15?'hi':s.conv>=5?'mid':'lo'}">${s.conv}%</span></td>
+    </tr>`).join('');
+
+  // Donut canais
+  donut('ch-leads-canal',['WPP Button','Form Direto','Orgânico'],[wppS.leads,formS.leads,orgS.leads],['#1E7A42','#5B7FA6','#A89870']);
+
+  // Melhor dia da semana
+  const diasSemana=['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+  const diaCount=new Array(7).fill(0);
+  rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d) diaCount[d.getDay()]++;});
+  const maxDia=Math.max(...diaCount);
+  barChart('ch-diasemana',diasSemana,[{
+    label:'Leads',data:diaCount,
+    backgroundColor:diaCount.map(v=>v===maxDia&&maxDia>0?'#C92B1E':'rgba(201,43,30,0.35)'),borderWidth:0
+  }]);
+
+  // Investimento vs Leads semanal
+  if(ads.length){
+    const semanas={};
+    ads.forEach(r=>{
+      const d=parseDate(r['Início dos relatórios']||r['Data']||'');
+      if(!d) return;
+      const wk=fmt(new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay()));
+      if(!semanas[wk]) semanas[wk]={invest:0,leads:0};
+      const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));
+      if(!isNaN(v)) semanas[wk].invest+=v;
+      const l=parseInt(r['Resultados']||'0');
+      if(!isNaN(l)) semanas[wk].leads+=l;
+    });
+    const wks=Object.keys(semanas).sort();
+    dc('ch-invest-leads');
+    const ctx=document.getElementById('ch-invest-leads');
+    if(ctx) charts['ch-invest-leads']=new Chart(ctx,{
+      type:'line',
+      data:{labels:wks.map(k=>k.slice(5)),datasets:[
+        {label:'Invest. R$',data:wks.map(k=>Math.round(semanas[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y'},
+        {label:'Leads Meta',data:wks.map(k=>semanas[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y1'},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8}}},
+        scales:{
+          x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}}},
+          y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#C8941A',font:{size:9}},position:'left',beginAtZero:true},
+          y1:{grid:{display:false},ticks:{color:'#5B7FA6',font:{size:9}},position:'right',beginAtZero:true},
+        }
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════
+function renderAll(){
+  const rd=filterRD();
+  const ez=filterEZ();
+  const ads=filterADS();
+  renderHeader(rd);
+  if(activeTab==='visao')   renderVisaoGeral(rd,ez,ads);
+  if(activeTab==='funil')   renderFunil(rd,ez);
+  if(activeTab==='produto') renderProduto(rd);
+  if(activeTab==='perfil')  renderPerfil(rd);
+  if(activeTab==='atend')   renderAtendimento(ez,rd);
+  if(activeTab==='mkt')     renderMarketing(rd,ads);
+  atualizaUpd();
+}
+
+function atualizaUpd(){
+  let ultima=null;
+  rawRD.filter(r=>estadoNorm(r)==='Ganho').forEach(r=>{const d=parseDate(r['Data de fechamento']);if(d&&(!ultima||d>ultima)) ultima=d;});
+  const el=document.getElementById('updLabel');
+  if(!el) return;
+  if(ultima) el.textContent='Última venda: '+ultima.toLocaleDateString('pt-BR');
+  else if(rawRD.length) el.textContent='Dados carregados';
+  else el.textContent='Configure os URLs do Sheets acima';
+}
+
+// ═══════════════════════════════════════════════════════
+// FETCH
+// ═══════════════════════════════════════════════════════
+function setSS(state,msg){
+  const el=document.getElementById('syncStatus'),msgEl=document.getElementById('syncMsg');
+  if(!el||!msgEl) return;
+  el.className='sync-status '+state;
+  msgEl.textContent=msg;
+}
+
+async function fetchSheets(){
+  setSS('loading','Sincronizando...');
+  const btn=document.getElementById('syncBtn');
+  if(btn) btn.classList.add('loading');
+  const go=async(url,type)=>{
+    if(!url||url.includes('SEU_ID_AQUI')) return;
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=parseCSV(await res.text());
+    if(type==='rd') rawRD=d;
+    else if(type==='ez') rawEZ=d;
+    else if(type==='ads') rawADS=d;
+  };
+  const errs=[];
+  await Promise.allSettled([
+    go(URLS.rd,'rd').catch(e=>errs.push('RD: '+e.message)),
+    go(URLS.ez,'ez').catch(e=>errs.push('EZ: '+e.message)),
+    go(URLS.ads,'ads').catch(e=>errs.push('ADS: '+e.message)),
+  ]);
+  if(btn) btn.classList.remove('loading');
+  errs.length?setSS('err','Erro: '+errs[0]):setSS('ok',new Date().toLocaleTimeString('pt-BR'));
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.getElementById('ft-year').textContent=new Date().getFullYear();
+initDates();
+fetchSheets();
+autoTimer=setInterval(fetchSheets,10*60000);
+</script>
+</body>
+</html>
