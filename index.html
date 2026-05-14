@@ -522,7 +522,8 @@ function splitCSV(l,delim=','){
 function dedupEZ(arr){
   const map={};
   arr.forEach(r=>{
-    if((r['Tipo']||'').toLowerCase()!=='humano') return;
+    const tipo=(r['Tipo']||'').toLowerCase().trim();
+    if(tipo==='bot'||tipo==='automatizado'||tipo==='robot') return;
     const proto=(r['Protocolo']||'').toString().trim();
     if(!proto) return;
     const ia=parseInt(r['Interações Agente']||'0')||0;
@@ -1168,6 +1169,8 @@ async function fetchSheets(){
     go(URLS.ads,'ads').catch(e=>errs.push('ADS: '+e.message)),
   ]);
   if(btn) btn.classList.remove('loading');
+  console.log('[SCNB] RD:',rawRD.length,'EZ:',rawEZ.length,'(dedup:',dedupEZ(rawEZ).length,')','ADS:',rawADS.length);
+  if(rawEZ.length) console.log('[EZ] Tipos únicos:',{...rawEZ.reduce((a,r)=>{const t=r['Tipo']||'(vazio)';a[t]=(a[t]||0)+1;return a;},{})});
   errs.length?setSS('err','Erro: '+errs[0]):setSS('ok',new Date().toLocaleTimeString('pt-BR'));
   renderAll();
 }
