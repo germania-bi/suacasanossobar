@@ -1155,9 +1155,14 @@ async function fetchSheets(){
   if(btn) btn.classList.add('loading');
   const go=async(url,type)=>{
     if(!url||url.includes('SEU_ID_AQUI')) return;
+    console.log('[SCNB fetch]',type,'→',url.slice(0,80)+'...');
     const res=await fetch(url,{cache:'no-store'});
+    console.log('[SCNB fetch]',type,'status:',res.status,'ok:',res.ok);
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const d=parseCSV(await res.text());
+    const text=await res.text();
+    console.log('[SCNB fetch]',type,'bytes:',text.length,'preview:',text.slice(0,120).replace(/\n/g,'↵'));
+    const d=parseCSV(text);
+    console.log('[SCNB parse]',type,'rows:',d.length,'cols:',d[0]?Object.keys(d[0]).join(' | '):'(vazio)');
     if(type==='rd') rawRD=d;
     else if(type==='ez') rawEZ=d;
     else if(type==='ads') rawADS=d;
