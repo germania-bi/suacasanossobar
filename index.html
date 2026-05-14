@@ -98,14 +98,14 @@
 <div id="panel-visao" class="tab-panel active">
 
   <div class="mkpi-row">
-    <div class="mkpi"><div class="mkpi-v"       id="vg-leads">--</div><div class="mkpi-l">Leads</div></div>
-    <div class="mkpi"><div class="mkpi-v green"  id="vg-vendas">--</div><div class="mkpi-l">Vendas Germania</div></div>
-    <div class="mkpi"><div class="mkpi-v blue"   id="vg-loja">--</div><div class="mkpi-l">Vendas de Loja</div></div>
-    <div class="mkpi"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão</div></div>
-    <div class="mkpi"><div class="mkpi-v gold"   id="vg-ticket">--</div><div class="mkpi-l">Ticket Médio</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="vg-tpi">--</div><div class="mkpi-l">TPI Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="vg-leads">--</div><div class="mkpi-l">Leads</div><div class="mkpi-d" id="vg-leads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="vg-vendas">--</div><div class="mkpi-l">Vendas Germania</div><div class="mkpi-d" id="vg-vendas-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v blue"   id="vg-loja">--</div><div class="mkpi-l">Vendas de Loja</div><div class="mkpi-d" id="vg-loja-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado</div><div class="mkpi-d" id="vg-fat-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão</div><div class="mkpi-d" id="vg-conv-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v gold"   id="vg-ticket">--</div><div class="mkpi-l">Ticket Médio</div><div class="mkpi-d" id="vg-ticket-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div><div class="mkpi-d" id="vg-ciclo-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="vg-tpi">--</div><div class="mkpi-l">TPI Médio</div><div class="mkpi-d" id="vg-tpi-d"></div></div>
   </div>
 
   <div class="g21">
@@ -121,12 +121,12 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">📊</div><div class="btitle">Canal Germânia</div><div class="bsub" id="vg-canal-periodo"></div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Canal Germânia</div><div class="bsub" id="vg-canal-periodo"></div></div>
       <div class="bbody" id="vg-canal-body"><div class="empty"><div class="ei">⏳</div>Carregando...</div></div>
     </div>
     <div class="block">
-      <div class="bhead blue"><div class="bico blue">📍</div><div class="btitle">Top Cidades</div></div>
-      <div class="bbody"><div class="hbar-list" id="vg-cidades"></div></div>
+      <div class="bhead blue"><div class="c-title pill-blue">Top Cidades</div></div>
+      <div class="bbody" style="padding:8px 12px"><div id="vg-cidades-map"></div></div>
     </div>
   </div>
 
@@ -144,13 +144,13 @@
   </div>
 
   <div class="block">
-    <div class="bhead"><div class="bico red">🔻</div><div class="btitle">Funil por Etapa</div><div class="bsub">Canal Germânia</div></div>
+    <div class="bhead"><div class="c-title pill-red">Funil por Etapa</div><div class="bsub">Canal Germânia</div></div>
     <div class="bbody"><div class="funil-list" id="funil-etapas"></div></div>
   </div>
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">⏱</div><div class="btitle">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
       <div class="bbody">
         <div style="max-height:160px"><canvas id="ch-ciclo"></canvas></div>
         <div class="divider"></div>
@@ -158,13 +158,13 @@
       </div>
     </div>
     <div class="block">
-      <div class="bhead" style="border-left-color:var(--s-yellow)"><div class="bico" style="background:rgba(150,106,0,.15);border:1px solid rgba(150,106,0,.3)">⚠</div><div class="btitle">Aging</div><div class="bsub">deals parados</div></div>
+      <div class="bhead" style="border-left-color:var(--s-yellow)"><div class="c-title pill-gold">Aging</div><div class="bsub">deals parados</div></div>
       <div class="bbody"><div class="aging-list" id="aging-list"></div></div>
     </div>
   </div>
 
   <div class="block">
-    <div class="bhead"><div class="bico red">✖</div><div class="btitle">Motivos de Perda / Desqualificação</div><div class="bsub">via EZ</div></div>
+    <div class="bhead"><div class="c-title pill-red">Motivos de Perda</div><div class="bsub">via EZ</div></div>
     <div class="bbody"><div class="mbar-list" id="fn-perdas"></div></div>
   </div>
 
@@ -190,11 +190,11 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">📈</div><div class="btitle">Vendas por Mês</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Vendas por Mês</div></div>
       <div class="bbody" style="padding-top:12px"><canvas id="ch-vendas-mes" style="max-height:200px"></canvas></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">💰</div><div class="btitle">Ticket por Canal de Origem</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Ticket por Canal</div></div>
       <div class="bbody"><div class="mbar-list" id="pr-ticket-canal"></div></div>
     </div>
   </div>
@@ -216,22 +216,22 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead blue"><div class="bico blue">📍</div><div class="btitle">Cidades que mais compram</div></div>
+      <div class="bhead blue"><div class="c-title pill-blue">Cidades que mais compram</div></div>
       <div class="bbody"><div class="hbar-list" id="icp-cidades"></div></div>
     </div>
     <div class="block">
-      <div class="bhead blue"><div class="bico blue">🤝</div><div class="btitle">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
+      <div class="bhead blue"><div class="c-title pill-blue">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
       <div class="bbody"><div class="hbar-list" id="icp-parceiros"></div></div>
     </div>
   </div>
 
   <div class="g2">
     <div class="block">
-      <div class="bhead green"><div class="bico green">📊</div><div class="btitle">Canal de Entrada</div><div class="bsub">leads por origem</div></div>
+      <div class="bhead green"><div class="c-title pill-green">Canal de Entrada</div><div class="bsub">leads por origem</div></div>
       <div class="bbody"><div class="mbar-list" id="icp-canal-entry"></div></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">🏆</div><div class="btitle">Win Rate por Canal</div><div class="bsub">vendas / leads</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Win Rate por Canal</div><div class="bsub">vendas / leads</div></div>
       <div class="bbody"><div class="mbar-list" id="icp-winrate"></div></div>
     </div>
   </div>
@@ -256,11 +256,11 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead"><div class="bico red">🏷</div><div class="btitle">Classificações</div><div class="bsub">resultado do atendimento</div></div>
+      <div class="bhead"><div class="c-title pill-red">Classificações</div><div class="bsub">resultado do atendimento</div></div>
       <div class="bbody"><div class="mbar-list" id="at-classificacoes"></div></div>
     </div>
     <div class="block">
-      <div class="bhead blue"><div class="bico blue">👤</div><div class="btitle">Performance por Agente</div></div>
+      <div class="bhead blue"><div class="c-title pill-blue">Performance por Agente</div></div>
       <div class="bbody">
         <div class="stbl-wrap">
           <table class="stbl">
@@ -283,7 +283,7 @@
       <canvas id="ch-receptivo"></canvas>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">⚡</div><div class="btitle">TPI por Faixa</div><div class="bsub">impacto na conversão</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">TPI por Faixa</div><div class="bsub">impacto na conversão</div></div>
       <div class="bbody">
         <div class="mbar-list" id="at-tpi-faixas"></div>
         <div class="divider"></div>
@@ -350,7 +350,7 @@
     </div>
     <div>
       <div class="block mb">
-        <div class="bhead blue"><div class="bico blue">📊</div><div class="btitle">Funil por Origem</div></div>
+        <div class="bhead blue"><div class="c-title pill-blue">Funil por Origem</div></div>
         <div class="bbody" style="padding:0 16px">
           <table class="stbl">
             <thead><tr>
@@ -373,11 +373,11 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">📅</div><div class="btitle">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
       <div class="bbody" style="padding-top:12px"><canvas id="ch-diasemana" style="max-height:160px"></canvas></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="bico gold">📈</div><div class="btitle">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
       <div class="bbody" style="padding-top:12px"><canvas id="ch-invest-leads" style="max-height:160px"></canvas></div>
     </div>
   </div>
@@ -409,6 +409,7 @@ let charts={};
 let dateFrom=null, dateTo=null;
 let activeTab='visao';
 let autoTimer=null;
+let currentShortcut='thismonth';
 
 // ═══════════════════════════════════════════════════════
 // CHART DEFAULTS
@@ -701,6 +702,7 @@ function setCanal(val,el){
   renderAll();
 }
 function setShortcut(type,el){
+  currentShortcut=type;
   document.querySelectorAll('.btn-sh').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   const n=new Date(),y=n.getFullYear(),m=n.getMonth();
@@ -721,6 +723,137 @@ function applyFilter(){
   if(df) dateFrom=new Date(df);
   if(dt){dateTo=new Date(dt);dateTo.setHours(23,59,59);}
   renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// DELTA DE PERÍODO
+// ═══════════════════════════════════════════════════════
+function getPrevPeriod(){
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  if(currentShortcut==='today')     return {from:new Date(y,m,n.getDate()-1),       to:new Date(y,m,n.getDate()-1,23,59,59)};
+  if(currentShortcut==='7d')        return {from:new Date(+dateFrom-7*864e5),        to:new Date(+dateTo-7*864e5)};
+  if(currentShortcut==='thismonth') return {from:new Date(y,m-1,1),                 to:new Date(y,m,0,23,59,59)};
+  if(currentShortcut==='quarter')   return {from:new Date(+dateFrom-90*864e5),       to:new Date(+dateTo-90*864e5)};
+  return null;
+}
+function getPrevLabel(){
+  if(currentShortcut==='today')     return 'vs ontem';
+  if(currentShortcut==='7d')        return 'vs 7d ant.';
+  if(currentShortcut==='thismonth') return 'vs mês ant.';
+  if(currentShortcut==='quarter')   return 'vs tri ant.';
+  return null;
+}
+function computeVG(from,to){
+  const canal=filtroCanal();
+  const rdSlice=rawRD.filter(r=>{
+    const d=parseDate(r['Data de criação']);
+    if(!d||d<from||d>to) return false;
+    if(canal==='germania'&&isLoja(r)) return false;
+    if(canal==='loja'&&!isLoja(r)) return false;
+    return true;
+  });
+  const ganho=rdSlice.filter(r=>estadoNorm(r)==='Ganho');
+  const vendGerm=ganho.filter(r=>!isLoja(r));
+  const vendLoja=ganho.filter(r=>isLoja(r));
+  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const decididas=rdSlice.filter(r=>estadoNorm(r)!=='Em Andamento');
+  const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
+  const ticket=vendGerm.length?fat/vendGerm.length:0;
+  const ciclos=vendGerm.map(r=>{
+    const dc=parseDate(r['Data de criação']),df=parseDate(r['Data de fechamento']);
+    if(!dc||!df) return null;
+    return Math.max(0,Math.round((df-dc)/864e5));
+  }).filter(v=>v!==null);
+  const ezSlice=dedupEZ(rawEZ).filter(r=>{
+    const d=parseDate(r['Criado em']);
+    return d&&d>=from&&d<=to;
+  });
+  const tpis=ezSlice.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+  return {
+    leads:rdSlice.length,vendGerm:vendGerm.length,vendLoja:vendLoja.length,
+    fat,conv,ticket,
+    ciclo:ciclos.length?Math.round(avg(ciclos)):null,
+    tpi:avg(tpis)
+  };
+}
+function fmtDelta(cur,prev,isPercent=false,isBRL=false){
+  if(prev===null||prev===undefined||isNaN(prev)) return '';
+  const diff=cur-prev;
+  if(diff===0) return '<span class="mkpi-d neu">=</span>';
+  const pct=prev!==0?Math.round(Math.abs(diff)/Math.abs(prev)*100):null;
+  const arrow=diff>0?'↑':'↓';
+  const cls=diff>0?'up':'dn';
+  let val;
+  if(isBRL)        val=fmtBRLk(Math.abs(diff));
+  else if(isPercent) val=Math.abs(diff)+'pp';
+  else               val=(pct!==null?pct+'%':'—');
+  return `<span class="mkpi-d ${cls}">${arrow}${val}</span>`;
+}
+function setDelta(id,cur,prev,isPercent,isBRL,label){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(prev===null||prev===undefined||label===null){el.innerHTML='';return;}
+  el.innerHTML=fmtDelta(cur,prev,isPercent,isBRL)+' <span class="mkpi-d-lbl">'+label+'</span>';
+}
+
+// ═══════════════════════════════════════════════════════
+// MAPA SP
+// ═══════════════════════════════════════════════════════
+const CIDADES_SP={
+  'São Paulo':              {x:233,y:177},
+  'Guarulhos':              {x:239,y:168},
+  'Campinas':               {x:217,y:147},
+  'São Bernardo do Campo':  {x:238,y:185},
+  'Santo André':            {x:241,y:182},
+  'Osasco':                 {x:225,y:176},
+  'Sorocaba':               {x:203,y:175},
+  'Jundiaí':                {x:224,y:160},
+  'Ribeirão Preto':         {x:190,y:65},
+  'Santos':                 {x:244,y:197},
+  'Mauá':                   {x:242,y:183},
+  'Bauru':                  {x:145,y:119},
+  'Piracicaba':             {x:196,y:139},
+  'São José dos Campos':    {x:260,y:160},
+  'São José do Rio Preto':  {x:134,y:48},
+  'Presidente Prudente':    {x:62,y:110},
+  'Marília':                {x:116,y:130},
+  'Araçatuba':              {x:95,y:88},
+  'Taubaté':                {x:265,y:153},
+  'Suzano':                 {x:249,y:167},
+  'Diadema':                {x:236,y:186},
+  'Carapicuíba':            {x:221,y:173},
+  'Mogi das Cruzes':        {x:254,y:165},
+  'Praia Grande':           {x:240,y:202},
+  'Franca':                 {x:207,y:55},
+};
+function renderMapaSP(ganho){
+  const el=document.getElementById('vg-cidades-map');
+  if(!el) return;
+  const counts={};
+  ganho.forEach(r=>{
+    const c=(r['Unidades de atendimento']||'').trim();
+    if(c) counts[c]=(counts[c]||0)+1;
+  });
+  if(!Object.keys(counts).length){
+    el.innerHTML='<div class="empty"><div class="ei">📍</div>Sem cidades no período</div>';
+    return;
+  }
+  const max=Math.max(...Object.values(counts),1);
+  const circles=Object.entries(CIDADES_SP).map(([cidade,{x,y}])=>{
+    const n=counts[cidade]||0;
+    if(!n) return '';
+    const r=Math.max(5,Math.round(Math.sqrt(n/max)*20));
+    const lbl=cidade.split(' ')[0];
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(201,43,30,0.50)" stroke="#C92B1E" stroke-width="1.2" style="cursor:default"><title>${cidade}: ${n} venda${n>1?'s':''}</title></circle>
+<text x="${x}" y="${y+r+9}" text-anchor="middle" font-size="7" fill="#9A9A9A" pointer-events="none">${lbl}</text>`;
+  }).join('');
+  // Unmapped cities → show as dots + list below
+  const unmapped=Object.entries(counts).filter(([c])=>!CIDADES_SP[c]).sort((a,b)=>b[1]-a[1]);
+  const spPath='M 4,137 L 40,28 L 94,0 L 165,0 L 209,10 L 316,33 L 320,109 L 309,170 L 273,194 L 244,199 L 183,246 L 158,255 L 129,260 L 58,222 L 0,151 Z';
+  el.innerHTML=`<svg viewBox="0 0 320 260" width="100%" style="max-height:220px;display:block">
+  <path d="${spPath}" fill="rgba(200,148,26,0.06)" stroke="rgba(200,148,26,0.28)" stroke-width="1.2"/>
+  ${circles}
+</svg>`+(unmapped.length?`<div style="font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.7">${unmapped.map(([c,n])=>`<span style="margin-right:10px">${c} (${n})</span>`).join('')}</div>`:'');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -771,14 +904,68 @@ function renderVisaoGeral(rd,ez,ads){
   document.getElementById('vg-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+'d':'--';
   document.getElementById('vg-tpi').textContent=fmtMin(avg(tpis));
 
-  // Leads por dia
+  // Delta de período
+  const prev=getPrevPeriod();
+  const dlbl=getPrevLabel();
+  const p=prev?computeVG(prev.from,prev.to):null;
+  setDelta('vg-leads-d', rdC.length,        p?.leads,   false,false,dlbl);
+  setDelta('vg-vendas-d',vendGerm.length,   p?.vendGerm,false,false,dlbl);
+  setDelta('vg-loja-d',  vendLoja.length,   p?.vendLoja,false,false,dlbl);
+  setDelta('vg-fat-d',   fat,               p?.fat,     false,true, dlbl);
+  setDelta('vg-conv-d',  conv,              p?.conv,    true, false,dlbl);
+  setDelta('vg-ticket-d',ticket,            p?.ticket,  false,true, dlbl);
+  setDelta('vg-ciclo-d', ciclos.length?Math.round(avg(ciclos)):0, p?.ciclo, false,false,dlbl);
+  setDelta('vg-tpi-d',   avg(tpis)!==null?Math.round(avg(tpis)):null, p?.tpi!==null?Math.round(p.tpi):null, false,false,dlbl);
+
+  // Leads por dia — com linha comparativa e tooltip
   const diasMap={};
   rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
   const dk=Object.keys(diasMap).sort();
-  lineChart('ch-leads-dia',dk.map(k=>k.slice(5)),[{
-    label:'Leads',data:dk.map(k=>diasMap[k]),
-    borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.12)',tension:0.3,pointRadius:2,fill:true
-  }]);
+  const vals=dk.map(k=>diasMap[k]);
+  const maxIdx=vals.indexOf(Math.max(...vals,0));
+  const radii=vals.map((_,i)=>i===maxIdx&&vals[maxIdx]>0?6:2);
+  const datasets=[{
+    label:'Período atual',data:vals,
+    borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.10)',
+    tension:0.3,pointRadius:radii,pointHoverRadius:7,fill:true
+  }];
+  if(prev){
+    const diasPrev={};
+    rawRD.filter(r=>{
+      const canal=filtroCanal();
+      const d=parseDate(r['Data de criação']);
+      if(!d||d<prev.from||d>prev.to) return false;
+      if(canal==='germania'&&isLoja(r)) return false;
+      if(canal==='loja'&&!isLoja(r)) return false;
+      return true;
+    }).forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
+    const dpk=Object.keys(diasPrev).sort();
+    const prevVals=dk.map((_,i)=>dpk[i]?diasPrev[dpk[i]]:(dpk.length>i?diasPrev[dpk[i]]:null));
+    datasets.push({
+      label:dlbl,data:prevVals,
+      borderColor:'rgba(201,43,30,0.30)',backgroundColor:'transparent',
+      borderDash:[4,3],tension:0.3,pointRadius:0,fill:false
+    });
+  }
+  dc('ch-leads-dia');
+  const ctx=document.getElementById('ch-leads-dia');
+  if(ctx) charts['ch-leads-dia']=new Chart(ctx,{
+    type:'line',data:{labels:dk.map(k=>k.slice(5)),datasets},
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{display:datasets.length>1,labels:{color:'#A89870',font:{size:10},boxWidth:8}},
+        tooltip:{callbacks:{
+          title:items=>{const k=dk[items[0].dataIndex];return k?k.split('-').slice(1).join('/'):k;},
+          label:items=>`${items.dataset.label}: ${items.raw??'—'} leads`
+        }}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},maxRotation:45}},
+        y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9}},beginAtZero:true}
+      }
+    }
+  });
 
   // Classificações EZ
   const classEZ=freq(ez,'Classificações');
@@ -812,9 +999,8 @@ function renderVisaoGeral(rd,ez,ads){
   const el=document.getElementById('vg-canal-periodo');
   if(el) el.textContent=rdC.length+' leads';
 
-  // Top cidades (vendas)
-  const cidades=freq(ganho,'Unidades de atendimento').slice(0,8);
-  hbarHtml('vg-cidades',cidades,'gold');
+  // Top cidades — mapa SP
+  renderMapaSP(ganho);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1186,14 +1372,10 @@ async function fetchSheets(){
   if(btn) btn.classList.add('loading');
   const go=async(url,type)=>{
     if(!url||url.includes('SEU_ID_AQUI')) return;
-    console.log('[SCNB fetch]',type,'→',url.slice(0,80)+'...');
     const res=await fetch(url,{cache:'no-store'});
-    console.log('[SCNB fetch]',type,'status:',res.status,'ok:',res.ok);
     if(!res.ok) throw new Error('HTTP '+res.status);
     const text=await res.text();
-    console.log('[SCNB fetch]',type,'bytes:',text.length,'preview:',text.slice(0,120).replace(/\n/g,'↵'));
     const d=parseCSV(text);
-    console.log('[SCNB parse]',type,'rows:',d.length,'cols:',d[0]?Object.keys(d[0]).join(' | '):'(vazio)');
     if(type==='rd') rawRD=d;
     else if(type==='ez') rawEZ=d;
     else if(type==='ads') rawADS=d;
@@ -1205,8 +1387,6 @@ async function fetchSheets(){
     go(URLS.ads,'ads').catch(e=>errs.push('ADS: '+e.message)),
   ]);
   if(btn) btn.classList.remove('loading');
-  console.log('[SCNB] RD:',rawRD.length,'EZ:',rawEZ.length,'(dedup:',dedupEZ(rawEZ).length,')','ADS:',rawADS.length);
-  if(rawEZ.length) console.log('[EZ] Tipos únicos:',{...rawEZ.reduce((a,r)=>{const t=r['Tipo']||'(vazio)';a[t]=(a[t]||0)+1;return a;},{})});
   errs.length?setSS('err','Erro: '+errs[0]):setSS('ok',new Date().toLocaleTimeString('pt-BR'));
   renderAll();
 }

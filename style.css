@@ -280,6 +280,17 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:var(--fs-ui); font-weight:800;
   letter-spacing:.07em; text-transform:uppercase; color:var(--cream);
 }
+.c-title{
+  display:inline-flex; align-items:center;
+  font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase;
+  border-radius:20px; padding:3px 12px;
+}
+.pill-gold { background:rgba(200,148,26,0.12); color:#C8941A; border:1px solid rgba(200,148,26,0.25); }
+.pill-blue { background:rgba(91,127,166,0.12);  color:#5B7FA6; border:1px solid rgba(91,127,166,0.22); }
+.pill-green{ background:rgba(30,122,66,0.12);   color:#1E7A42; border:1px solid rgba(30,122,66,0.22); }
+.pill-red  { background:rgba(201,43,30,0.12);   color:#C92B1E; border:1px solid rgba(201,43,30,0.22); }
+.pill-gray { background:rgba(155,155,155,0.10); color:#9A9A9A; border:1px solid rgba(155,155,155,0.18); }
 .bsub{ font-size:var(--fs-label); color:var(--txt-mid); margin-left:auto; text-transform:uppercase; letter-spacing:.09em; }
 .bbody{ padding:16px 18px; }
 
@@ -301,6 +312,14 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:var(--fs-label); color:var(--txt-mid);
   text-transform:uppercase; letter-spacing:.09em; margin-top:3px;
 }
+.mkpi-d{
+  font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.04em; color:#9A9A9A; display:block; margin-top:3px; white-space:nowrap;
+}
+.mkpi-d.up  { color:#4EAD72; }
+.mkpi-d.dn  { color:#E05C50; }
+.mkpi-d.neu { color:#9A9A9A; }
+.mkpi-d-lbl { color:var(--txt-faint); font-weight:400; }
 
 /* ─── CHART BOX ─── */
 .chart-box{
