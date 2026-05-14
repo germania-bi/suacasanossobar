@@ -13,7 +13,7 @@
 <!-- ═══ HEADER ═══ -->
 <header class="header">
   <div class="header-inner">
-    <div class="h-logo"><img src="logo.png" alt="Germânia" style="width:72px;height:72px;object-fit:contain"></div>
+    <div class="h-logo"><svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.25)"/><text x="32" y="44" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="38" font-weight="900" fill="#FFA62C" letter-spacing="-1">G</text></svg></div>
     <div class="h-brand">
       <div class="eyebrow">Germânia · Cervejaria · Dashboard Comercial</div>
       <div class="h-title">SCNB · Chopeiras</div>
@@ -57,9 +57,9 @@
   <div class="f-shortcuts">
     <button class="btn-sh" onclick="setShortcut('today',this)">Hoje</button>
     <button class="btn-sh" onclick="setShortcut('7d',this)">7d</button>
-    <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
+    <button class="btn-sh" onclick="setShortcut('thismonth',this)">Mês</button>
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
-    <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
+    <button class="btn-sh active" onclick="setShortcut('all',this)">Tudo</button>
   </div>
   <button class="btn-f" onclick="applyFilter()">Aplicar</button>
   <div class="f-pipe"></div>
@@ -482,9 +482,9 @@ function parseCampanha(s){
 function isLoja(r){return !!(r['Vendedor Responsável']&&r['Vendedor Responsável'].trim());}
 
 function estadoNorm(r){
-  const e=(r['Estado']||'').trim();
-  if(['Ganho','Vendida','Vendido','Fechado','Won'].includes(e)) return 'Ganho';
-  if(['Perdido','Perdida','Lost','Cancelado'].includes(e)) return 'Perdido';
+  const e=(r['Estado']||'').trim().toLowerCase();
+  if(['ganho','vendida','vendido','fechado','won','venda realizada','concluido','concluído'].includes(e)) return 'Ganho';
+  if(['perdido','perdida','lost','cancelado','desqualificado','sem interesse'].includes(e)) return 'Perdido';
   return 'Em Andamento';
 }
 
@@ -662,8 +662,7 @@ function hbarHtml(id,items,color=''){
 // DATES UI
 // ═══════════════════════════════════════════════════════
 function initDates(){
-  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
-  const f=new Date(y,m,1),t=new Date(y,m+1,0);
+  const f=new Date(2024,0,1),t=new Date(2030,11,31);
   document.getElementById('dateFrom').value=fmt(f);
   document.getElementById('dateTo').value=fmt(t);
   dateFrom=f; dateTo=t;
