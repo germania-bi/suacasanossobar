@@ -110,8 +110,8 @@
 
   <div class="g21">
     <div class="chart-box">
-      <div class="ctitle">Leads por Dia</div>
-      <canvas id="ch-leads-dia"></canvas>
+      <div class="ctitle">Leads por Dia<span class="ctitle-sub" id="vg-leadsdia-sub"></span></div>
+      <canvas id="ch-leads-dia" style="min-height:200px"></canvas>
     </div>
     <div class="chart-box">
       <div class="ctitle">Resultado dos Atendimentos</div>
@@ -799,61 +799,95 @@ function setDelta(id,cur,prev,isPercent,isBRL,label){
 // ═══════════════════════════════════════════════════════
 // MAPA SP
 // ═══════════════════════════════════════════════════════
+// Coordenadas calculadas a partir de lat/lon reais via fórmula:
+// x=(lon+53.1)/8.9*320  y=(-19.8-lat)/5.5*260
 const CIDADES_SP={
   'São Paulo':              {x:233,y:177},
   'Guarulhos':              {x:239,y:168},
   'Campinas':               {x:217,y:147},
-  'São Bernardo do Campo':  {x:238,y:185},
-  'Santo André':            {x:241,y:182},
-  'Osasco':                 {x:225,y:176},
+  'São Bernardo do Campo':  {x:235,y:184},
+  'Santo André':            {x:239,y:183},
+  'Osasco':                 {x:226,y:176},
   'Sorocaba':               {x:203,y:175},
   'Jundiaí':                {x:224,y:160},
   'Ribeirão Preto':         {x:190,y:65},
   'Santos':                 {x:244,y:197},
-  'Mauá':                   {x:242,y:183},
+  'Mauá':                   {x:241,y:183},
   'Bauru':                  {x:145,y:119},
   'Piracicaba':             {x:196,y:139},
-  'São José dos Campos':    {x:260,y:160},
+  'São José dos Campos':    {x:262,y:160},
   'São José do Rio Preto':  {x:134,y:48},
   'Presidente Prudente':    {x:62,y:110},
-  'Marília':                {x:116,y:130},
-  'Araçatuba':              {x:95,y:88},
-  'Taubaté':                {x:265,y:153},
-  'Suzano':                 {x:249,y:167},
-  'Diadema':                {x:236,y:186},
-  'Carapicuíba':            {x:221,y:173},
-  'Mogi das Cruzes':        {x:254,y:165},
-  'Praia Grande':           {x:240,y:202},
-  'Franca':                 {x:207,y:55},
+  'Marília':                {x:116,y:113},
+  'Araçatuba':              {x:96,y:67},
+  'Taubaté':                {x:272,y:153},
+  'Suzano':                 {x:249,y:176},
+  'Diadema':                {x:235,y:185},
+  'Carapicuíba':            {x:222,y:176},
+  'Mogi das Cruzes':        {x:253,y:175},
+  'Praia Grande':           {x:241,y:202},
+  'Franca':                 {x:207,y:38},
+  'Limeira':                {x:205,y:133},
+  'São Carlos':             {x:175,y:111},
+  'Araraquara':             {x:177,y:93},
+  'Americana':              {x:210,y:141},
+  'Itaquaquecetuba':        {x:250,y:167},
 };
+
+// Normaliza cidade para matching tolerante a acentos/maiúsculas/sufixo "- SP"
+function normCidade(s){
+  return (s||'').trim()
+    .replace(/\s*[-–]\s*\w{2}$|\/\w{2}$/,'') // remove "- SP" ou "/ SP"
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().replace(/\s+/g,' ').trim();
+}
+// lookup normalizado → {cidade, x, y}
+const _cidadesNorm={};
+Object.entries(CIDADES_SP).forEach(([c,xy])=>{_cidadesNorm[normCidade(c)]={cidade:c,...xy};});
+
+function resolveCity(raw){
+  if(!raw) return null;
+  const exact=CIDADES_SP[raw.trim()];
+  if(exact) return raw.trim();
+  const norm=_cidadesNorm[normCidade(raw)];
+  if(norm) return norm.cidade;
+  return null; // unmapped
+}
+
+// Contorno simplificado do estado de SP derivado de coordenadas geográficas reais
+const SP_PATH='M 5,153 L 4,191 L 10,200 L 32,224 L 58,247 L 83,238 L 130,217 L 166,258 L 202,223 L 238,208 L 267,184 L 300,165 L 320,127 L 320,93 L 309,37 L 238,18 L 166,9 L 94,5 L 47,24 L 22,48 L 4,82 L 1,106 Z';
+
 function renderMapaSP(ganho){
   const el=document.getElementById('vg-cidades-map');
   if(!el) return;
-  const counts={};
+  const counts={};  // chave = nome canônico do dicionário ou raw
   ganho.forEach(r=>{
-    const c=(r['Unidades de atendimento']||'').trim();
-    if(c) counts[c]=(counts[c]||0)+1;
+    const raw=(r['Unidades de atendimento']||'').trim();
+    if(!raw) return;
+    const canon=resolveCity(raw)||raw;
+    counts[canon]=(counts[canon]||0)+1;
   });
   if(!Object.keys(counts).length){
-    el.innerHTML='<div class="empty"><div class="ei">📍</div>Sem cidades no período</div>';
+    el.innerHTML='<div class="empty" style="height:140px;justify-content:center"><div class="ei">📍</div>Sem cidades no período</div>';
     return;
   }
   const max=Math.max(...Object.values(counts),1);
-  const circles=Object.entries(CIDADES_SP).map(([cidade,{x,y}])=>{
-    const n=counts[cidade]||0;
-    if(!n) return '';
-    const r=Math.max(5,Math.round(Math.sqrt(n/max)*20));
-    const lbl=cidade.split(' ')[0];
-    return `<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(201,43,30,0.50)" stroke="#C92B1E" stroke-width="1.2" style="cursor:default"><title>${cidade}: ${n} venda${n>1?'s':''}</title></circle>
-<text x="${x}" y="${y+r+9}" text-anchor="middle" font-size="7" fill="#9A9A9A" pointer-events="none">${lbl}</text>`;
-  }).join('');
-  // Unmapped cities → show as dots + list below
-  const unmapped=Object.entries(counts).filter(([c])=>!CIDADES_SP[c]).sort((a,b)=>b[1]-a[1]);
-  const spPath='M 4,137 L 40,28 L 94,0 L 165,0 L 209,10 L 316,33 L 320,109 L 309,170 L 273,194 L 244,199 L 183,246 L 158,255 L 129,260 L 58,222 L 0,151 Z';
-  el.innerHTML=`<svg viewBox="0 0 320 260" width="100%" style="max-height:220px;display:block">
-  <path d="${spPath}" fill="rgba(200,148,26,0.06)" stroke="rgba(200,148,26,0.28)" stroke-width="1.2"/>
-  ${circles}
-</svg>`+(unmapped.length?`<div style="font-size:11px;color:var(--txt-faint);margin-top:6px;line-height:1.7">${unmapped.map(([c,n])=>`<span style="margin-right:10px">${c} (${n})</span>`).join('')}</div>`:'');
+  const circles=[];
+  const unmapped=[];
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([cidade,n])=>{
+    const coord=CIDADES_SP[cidade];
+    if(!coord){unmapped.push([cidade,n]);return;}
+    const {x,y}=coord;
+    const r=Math.max(5,Math.round(Math.sqrt(n/max)*22));
+    const lbl=cidade.length>12?cidade.split(' ')[0]:cidade;
+    circles.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(201,43,30,0.55)" stroke="#C92B1E" stroke-width="1.4" opacity="0.9">
+  <title>${cidade}: ${n} venda${n>1?'s':''}</title></circle>
+<text x="${x}" y="${y+r+8}" text-anchor="middle" font-size="7.5" fill="#A89870" pointer-events="none">${lbl}</text>`);
+  });
+  el.innerHTML=`<svg viewBox="0 0 320 260" width="100%" style="max-height:230px;display:block;overflow:visible">
+  <path d="${SP_PATH}" fill="rgba(200,148,26,0.07)" stroke="rgba(200,148,26,0.35)" stroke-width="1.3" stroke-linejoin="round"/>
+  ${circles.join('\n')}
+</svg>`+(unmapped.length?`<div style="font-size:10px;color:var(--txt-faint);margin-top:5px;line-height:1.8;padding:0 4px">${unmapped.map(([c,n])=>`<span style="margin-right:8px">${c} <strong style="color:var(--txt-mid)">(${n})</strong></span>`).join('')}</div>`:'');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -922,14 +956,16 @@ function renderVisaoGeral(rd,ez,ads){
   rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
   const dk=Object.keys(diasMap).sort();
   const vals=dk.map(k=>diasMap[k]);
-  const maxIdx=vals.indexOf(Math.max(...vals,0));
-  const radii=vals.map((_,i)=>i===maxIdx&&vals[maxIdx]>0?6:2);
+  const maxVal=Math.max(...vals,0);
+  const maxIdx=vals.indexOf(maxVal);
+  const radii=vals.map((_,i)=>i===maxIdx&&maxVal>0?6:2);
   const datasets=[{
     label:'Período atual',data:vals,
-    borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.10)',
-    tension:0.3,pointRadius:radii,pointHoverRadius:7,fill:true
+    borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.15)',
+    tension:0.4,pointRadius:radii,pointHoverRadius:7,fill:true
   }];
-  if(prev){
+  const subEl=document.getElementById('vg-leadsdia-sub');
+  if(prev&&dlbl){
     const diasPrev={};
     rawRD.filter(r=>{
       const canal=filtroCanal();
@@ -940,28 +976,36 @@ function renderVisaoGeral(rd,ez,ads){
       return true;
     }).forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
     const dpk=Object.keys(diasPrev).sort();
-    const prevVals=dk.map((_,i)=>dpk[i]?diasPrev[dpk[i]]:(dpk.length>i?diasPrev[dpk[i]]:null));
-    datasets.push({
-      label:dlbl,data:prevVals,
-      borderColor:'rgba(201,43,30,0.30)',backgroundColor:'transparent',
-      borderDash:[4,3],tension:0.3,pointRadius:0,fill:false
-    });
+    const prevVals=dk.map((_,i)=>i<dpk.length?diasPrev[dpk[i]]??0:null);
+    const hasPrevData=prevVals.some(v=>v!==null&&v>0);
+    if(hasPrevData){
+      datasets.push({
+        label:dlbl,data:prevVals,
+        borderColor:'rgba(201,43,30,0.28)',backgroundColor:'transparent',
+        borderDash:[4,3],tension:0.4,pointRadius:0,fill:false
+      });
+      if(subEl) subEl.textContent='— linha tracejada = '+dlbl;
+    } else {
+      if(subEl) subEl.textContent='';
+    }
+  } else {
+    if(subEl) subEl.textContent='';
   }
   dc('ch-leads-dia');
   const ctx=document.getElementById('ch-leads-dia');
   if(ctx) charts['ch-leads-dia']=new Chart(ctx,{
     type:'line',data:{labels:dk.map(k=>k.slice(5)),datasets},
     options:{
-      responsive:true,maintainAspectRatio:true,
+      responsive:true,maintainAspectRatio:true,aspectRatio:2.2,
       plugins:{
-        legend:{display:datasets.length>1,labels:{color:'#A89870',font:{size:10},boxWidth:8}},
+        legend:{display:false},
         tooltip:{callbacks:{
-          title:items=>{const k=dk[items[0].dataIndex];return k?k.split('-').slice(1).join('/'):k;},
+          title:items=>{const k=dk[items[0].dataIndex];return k?k.split('-').slice(1).join('/')+'/'+k.slice(0,4):'';},
           label:items=>`${items.dataset.label}: ${items.raw??'—'} leads`
         }}
       },
       scales:{
-        x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},maxRotation:45}},
+        x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},maxRotation:45,maxTicksLimit:15}},
         y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9}},beginAtZero:true}
       }
     }

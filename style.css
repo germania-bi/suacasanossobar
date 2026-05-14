@@ -326,12 +326,17 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   background:var(--surface); border:0.8px solid var(--border2);
   border-radius:6px; padding:13px 14px;
 }
-.chart-box canvas{ max-height:180px; }
+.chart-box canvas{ max-height:260px; }
 .ctitle{
   font-size:var(--fs-label); font-weight:700; color:var(--txt-mid);
   text-transform:uppercase; letter-spacing:.1em;
   margin-bottom:12px; padding-bottom:9px;
   border-bottom:0.8px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.ctitle-sub{
+  font-size:9px; font-weight:400; color:var(--txt-faint);
+  letter-spacing:.03em; text-transform:none;
 }
 
 /* ─── HBAR (horizontal bar, HTML) ─── */
