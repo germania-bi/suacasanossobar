@@ -854,8 +854,9 @@ function resolveCity(raw){
   return null; // unmapped
 }
 
-// Contorno simplificado do estado de SP derivado de coordenadas geográficas reais
-const SP_PATH='M 5,153 L 4,191 L 10,200 L 32,224 L 58,247 L 83,238 L 130,217 L 166,258 L 202,223 L 238,208 L 267,184 L 300,165 L 320,127 L 320,93 L 309,37 L 238,18 L 166,9 L 94,5 L 47,24 L 22,48 L 4,82 L 1,106 Z';
+// Contorno do estado de SP: 30 pontos derivados de lat/lon reais
+// formula: x=(lon+53.1)/8.9*320  y=(-19.8-lat)/5.5*260
+const SP_PATH='M 0,130 L 0,152 L 1,178 L 13,198 L 28,211 L 43,223 L 56,226 L 66,246 L 85,252 L 98,238 L 132,212 L 155,225 L 165,257 L 199,232 L 221,210 L 246,194 L 255,199 L 266,177 L 300,162 L 319,127 L 320,105 L 306,67 L 294,34 L 255,11 L 191,0 L 129,2 L 76,7 L 43,26 L 18,57 L 6,104 Z';
 
 function renderMapaSP(ganho){
   const el=document.getElementById('vg-cidades-map');
@@ -975,18 +976,20 @@ function renderVisaoGeral(rd,ez,ads){
       if(canal==='loja'&&!isLoja(r)) return false;
       return true;
     }).forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
-    const dpk=Object.keys(diasPrev).sort();
-    const prevVals=dk.map((_,i)=>i<dpk.length?diasPrev[dpk[i]]??0:null);
-    const hasPrevData=prevVals.some(v=>v!==null&&v>0);
-    if(hasPrevData){
+    // Alinha por offset de dias (não por índice de posição)
+    const anchor=new Date(dk[0]||fmt(dateFrom));
+    const prevVals=dk.map(k=>{
+      const offset=Math.round((new Date(k)-anchor)/864e5);
+      const prevKey=fmt(new Date(+prev.from+offset*864e5));
+      return diasPrev[prevKey]??0;
+    });
+    if(subEl) subEl.textContent='— tracejado = '+dlbl;
+    if(Object.keys(diasPrev).length>0){
       datasets.push({
         label:dlbl,data:prevVals,
-        borderColor:'rgba(201,43,30,0.28)',backgroundColor:'transparent',
+        borderColor:'rgba(201,43,30,0.32)',backgroundColor:'transparent',
         borderDash:[4,3],tension:0.4,pointRadius:0,fill:false
       });
-      if(subEl) subEl.textContent='— linha tracejada = '+dlbl;
-    } else {
-      if(subEl) subEl.textContent='';
     }
   } else {
     if(subEl) subEl.textContent='';
