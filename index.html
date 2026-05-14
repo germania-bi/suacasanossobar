@@ -13,7 +13,7 @@
 <!-- ═══ HEADER ═══ -->
 <header class="header">
   <div class="header-inner">
-    <div class="h-logo"><svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.25)"/><text x="32" y="44" text-anchor="middle" font-family="'Barlow Condensed',sans-serif" font-size="38" font-weight="900" fill="#FFA62C" letter-spacing="-1">G</text></svg></div>
+    <div class="h-logo"><img src="logo.png" alt="Germânia" style="width:72px;height:72px;object-fit:contain"></div>
     <div class="h-brand">
       <div class="eyebrow">Germânia · Cervejaria · Dashboard Comercial</div>
       <div class="h-title">SCNB · Chopeiras</div>
@@ -71,14 +71,9 @@
     </div>
     <input type="hidden" id="filtroCanal" value="todos">
   </div>
-  <div class="sync-group">
-    <div class="sync-status" id="syncStatus">
-      <div class="sync-dot"></div>
-      <span id="syncMsg">Aguardando</span>
-    </div>
-    <button class="sync-btn" id="syncBtn" onclick="fetchSheets()">
-      <span class="spin">↻</span> Atualizar
-    </button>
+  <div class="sync-status" id="syncStatus" style="margin-left:auto">
+    <div class="sync-dot"></div>
+    <span id="syncMsg">Aguardando</span>
   </div>
   <span class="upd-label" id="updLabel"></span>
 </div>

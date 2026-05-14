@@ -144,6 +144,11 @@ body{
   color-scheme:dark;
 }
 .date-inp:focus{ border-color:var(--gold); }
+.date-inp::-webkit-calendar-picker-indicator{
+  filter:invert(0.6) sepia(1) saturate(3) hue-rotate(5deg);
+  cursor:pointer; opacity:.7;
+}
+.date-inp::-webkit-calendar-picker-indicator:hover{ opacity:1; }
 .date-range{ display:flex; align-items:center; gap:5px; }
 .date-sep{ color:var(--txt-faint); font-size:11px; }
 
