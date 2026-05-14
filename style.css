@@ -137,25 +137,45 @@ body{
 }
 .date-range{ display:flex; align-items:center; gap:0; }
 .date-inp{
-  -webkit-appearance:none; appearance:none;
   background:var(--card2); border:0.8px solid var(--border2);
   border-right-width:0;
   color:var(--txt); font-family:'Barlow Condensed',sans-serif;
   font-size:13px; font-weight:700; letter-spacing:.04em;
-  padding:5px 10px; outline:none; cursor:pointer;
-  color-scheme:dark; width:116px;
+  padding:5px 10px; outline:none; cursor:pointer; width:106px;
+  text-align:center;
 }
 .date-inp:first-child{ border-radius:4px 0 0 4px; }
 .date-inp:last-child { border-radius:0 4px 4px 0; border-right-width:0.8px; }
-.date-inp:focus{ border-color:var(--gold); z-index:1; position:relative; }
-.date-inp::-webkit-calendar-picker-indicator{
-  background:transparent; cursor:pointer;
-  filter:invert(60%) sepia(40%) saturate(400%) hue-rotate(10deg);
-  opacity:.5; margin-left:2px;
+.date-inp.active,.date-inp:focus{ border-color:var(--gold); z-index:1; position:relative; }
+.date-sep{ color:var(--txt-faint); font-size:11px; padding:0 2px; }
+
+/* ─── FLATPICKR overrides ─── */
+.flatpickr-calendar{
+  background:var(--card2)!important; border:0.8px solid var(--border2)!important;
+  border-radius:6px!important; box-shadow:0 8px 32px rgba(0,0,0,.55)!important;
+  font-family:'Barlow',sans-serif!important;
 }
-.date-inp::-webkit-calendar-picker-indicator:hover{ opacity:1; }
-.date-inp::-webkit-inner-spin-button{ display:none; }
-.date-sep{ display:none; }
+.flatpickr-months .flatpickr-month,
+.flatpickr-weekdays,
+span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!important; }
+.flatpickr-current-month{ color:var(--cream)!important; font-size:13px!important; }
+.flatpickr-current-month .numInputWrapper input,
+.flatpickr-current-month select{ color:var(--cream)!important; }
+.flatpickr-prev-month svg,.flatpickr-next-month svg{ fill:var(--txt-mid)!important; }
+.flatpickr-prev-month:hover svg,.flatpickr-next-month:hover svg{ fill:var(--gold-lt)!important; }
+.flatpickr-day{ color:var(--txt-mid)!important; border-radius:4px!important; }
+.flatpickr-day:hover{ background:var(--card)!important; border-color:var(--border2)!important; color:var(--txt)!important; }
+.flatpickr-day.selected,.flatpickr-day.selected:hover{
+  background:var(--red)!important; border-color:var(--red)!important; color:#fff!important;
+}
+.flatpickr-day.today{ border-color:var(--gold)!important; }
+.flatpickr-day.today:hover{ background:var(--gold-dim)!important; }
+.flatpickr-day.inRange{ background:var(--red-dim)!important; border-color:transparent!important; box-shadow:none!important; }
+.flatpickr-day.startRange,.flatpickr-day.endRange{
+  background:var(--red)!important; border-color:var(--red)!important; color:#fff!important;
+}
+.flatpickr-day.flatpickr-disabled,.flatpickr-day.flatpickr-disabled:hover{ color:var(--txt-faint)!important; }
+.numInputWrapper:hover{ background:var(--card)!important; }
 
 /* segmented pill groups */
 .f-shortcuts{ display:flex; gap:0; }

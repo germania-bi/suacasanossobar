@@ -6,6 +6,9 @@
 <title>SCNB · Chopeiras · Germânia</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -49,8 +52,9 @@
   <div class="f-group">
     <span class="f-lbl">Período</span>
     <div class="date-range">
-      <input type="date" class="date-inp" id="dateFrom" onchange="applyFilter()">
-      <input type="date" class="date-inp" id="dateTo" onchange="applyFilter()">
+      <input type="text" class="date-inp" id="dateFrom" placeholder="Início" readonly>
+      <span class="date-sep">→</span>
+      <input type="text" class="date-inp" id="dateTo" placeholder="Fim" readonly>
     </div>
   </div>
   <div class="f-shortcuts" id="dateShortcuts">
@@ -665,12 +669,14 @@ function hbarHtml(id,items,color=''){
 // ═══════════════════════════════════════════════════════
 // DATES UI
 // ═══════════════════════════════════════════════════════
+let fpFrom,fpTo;
 function initDates(){
   const n=new Date(),y=n.getFullYear(),m=n.getMonth();
   const f=new Date(y,m,1),t=new Date(y,m+1,0);
-  document.getElementById('dateFrom').value=fmt(f);
-  document.getElementById('dateTo').value=fmt(t);
   dateFrom=f; dateTo=t;
+  const base={locale:'pt',dateFormat:'d/m/Y',disableMobile:true};
+  fpFrom=flatpickr('#dateFrom',{...base,defaultDate:f,onChange(d){if(d[0]){dateFrom=d[0];renderAll();}}});
+  fpTo  =flatpickr('#dateTo',  {...base,defaultDate:t,onChange(d){if(d[0]){dateTo=new Date(d[0]);dateTo.setHours(23,59,59);renderAll();}}});
 }
 function setCanal(val,el){
   document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
@@ -690,8 +696,7 @@ function setShortcut(type,el){
   else if(type==='lastmonth'){f=new Date(y,m-1,1);t=new Date(y,m,0);}
   else if(type==='quarter'){f=new Date(+n-90*864e5);t=n;}
   else if(type==='all'){f=new Date(2024,0,1);t=new Date(2030,11,31);}
-  document.getElementById('dateFrom').value=fmt(f);
-  document.getElementById('dateTo').value=fmt(t);
+  fpFrom?.setDate(f,false); fpTo?.setDate(t,false);
   dateFrom=f; dateTo=t; renderAll();
 }
 function applyFilter(){
