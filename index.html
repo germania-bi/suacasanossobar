@@ -213,11 +213,11 @@
 <div id="panel-atend" class="tab-panel">
 
   <div class="mkpi-row">
-    <div class="mkpi"><div class="mkpi-v"  id="at-total">--</div><div class="mkpi-l">Atendimentos</div></div>
-    <div class="mkpi"><div class="mkpi-v"  id="at-tpi">--</div><div class="mkpi-l">TPI Médio</div></div>
-    <div class="mkpi"><div class="mkpi-v"  id="at-tma">--</div><div class="mkpi-l">TMA Médio</div></div>
-    <div class="mkpi"><div class="mkpi-v"  id="at-iagente">--</div><div class="mkpi-l">Interações Agente</div></div>
-    <div class="mkpi"><div class="mkpi-v"  id="at-icliente">--</div><div class="mkpi-l">Interações Cliente</div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-total">--</div><div class="mkpi-l">Atendimentos</div><div class="mkpi-d" id="at-total-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-tpi">--</div><div class="mkpi-l">TPI Médio <span class="tip" data-tip="Tempo para Primeira Interação — quanto tempo o agente levou para responder o primeiro contato.">i</span></div><div class="mkpi-d" id="at-tpi-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-tma">--</div><div class="mkpi-l">TMA Médio <span class="tip" data-tip="Tempo Médio de Interação com o Cliente durante o atendimento.">i</span></div><div class="mkpi-d" id="at-tma-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-iagente">--</div><div class="mkpi-l">Interações Agente</div><div class="mkpi-d" id="at-iagente-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"  id="at-icliente">--</div><div class="mkpi-l">Interações Cliente</div><div class="mkpi-d" id="at-icliente-d"></div></div>
   </div>
 
   <div class="chart-box">
@@ -249,9 +249,9 @@
   </div>
 
   <div class="g2">
-    <div class="chart-box">
-      <div class="ctitle"><span class="c-title pill-gray">Receptivo vs Ativo</span></div>
-      <canvas id="ch-receptivo"></canvas>
+    <div class="block">
+      <div class="bhead"><div class="c-title pill-gray">Receptivo vs Ativo</div></div>
+      <div class="bbody"><div id="at-rv-dist"></div></div>
     </div>
     <div class="block">
       <div class="bhead gold"><div class="c-title pill-gray">TPI por Faixa</div><div class="bsub">impacto na conversão</div></div>
@@ -1463,6 +1463,21 @@ function renderAtendimento(ez,rd){
   document.getElementById('at-iagente').textContent=iA.length?Math.round(avg(iA)*10)/10+'x':'--';
   document.getElementById('at-icliente').textContent=iC.length?Math.round(avg(iC)*10)/10+'x':'--';
 
+  // Deltas KPIs
+  const prev=getPrevPeriod();const dlbl=getPrevLabel();
+  if(prev){
+    const pEZ=dedupEZ(rawEZ).filter(r=>{const d=parseDate(r['Criado em']);return d&&d>=prev.from&&d<=prev.to;});
+    const pTpis=pEZ.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+    const pTmas=pEZ.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
+    const pIA=pEZ.map(r=>parseInt(r['Contagem de Interações do Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
+    const pIC=pEZ.map(r=>parseInt(r['Contagem de Interações do Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
+    setDelta('at-total-d',ez.length,pEZ.length,false,false,dlbl);
+    setDelta('at-tpi-d',tpis.length?Math.round(avg(tpis)):null,pTpis.length?Math.round(avg(pTpis)):null,false,false,dlbl);
+    setDelta('at-tma-d',tmas.length?Math.round(avg(tmas)):null,pTmas.length?Math.round(avg(pTmas)):null,false,false,dlbl);
+    setDelta('at-iagente-d',iA.length?Math.round(avg(iA)*10)/10:null,pIA.length?Math.round(avg(pIA)*10)/10:null,false,false,dlbl);
+    setDelta('at-icliente-d',iC.length?Math.round(avg(iC)*10)/10:null,pIC.length?Math.round(avg(pIC)*10)/10:null,false,false,dlbl);
+  }
+
   // Volume diário
   const diasMap={};
   ez.forEach(r=>{const d=parseDate(r['Criado em']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
@@ -1498,10 +1513,30 @@ function renderAtendimento(ez,rd){
     </tr>`;
   }).join('');
 
-  // Receptivo vs Ativo
+  // Receptivo vs Ativo — split bar
   const recep=ez.filter(r=>(r['Ativo']||'').toUpperCase()==='RECEPTIVO').length;
   const ativo=ez.filter(r=>(r['Ativo']||'').toUpperCase()==='ATIVO').length;
-  if(recep||ativo) donut('ch-receptivo',['Receptivo','Ativo'],[recep,ativo],['#C92B1E','#5B7FA6']);
+  const rvEl=document.getElementById('at-rv-dist');
+  if(rvEl){
+    const rvTot=recep+ativo||1;
+    const rPct=Math.round(recep/rvTot*100);
+    const aPct=Math.round(ativo/rvTot*100);
+    rvEl.innerHTML=`
+      <div class="dist-bar" style="height:10px;margin-bottom:0">
+        <div style="width:${rPct}%;background:#C92B1E;height:100%"></div>
+        <div style="width:${aPct}%;background:#5B7FA6;height:100%"></div>
+      </div>
+      <div class="dist-below">
+        <div class="dist-seg-lbl" style="width:${rPct}%">
+          <div class="dist-seg-count"><span class="dist-n">${recep}</span><span class="dist-pct">${rPct}%</span></div>
+          <div class="dist-seg-name" style="color:#C92B1E">Receptivo</div>
+        </div>
+        <div class="dist-seg-lbl" style="width:${aPct}%">
+          <div class="dist-seg-count"><span class="dist-n">${ativo}</span><span class="dist-pct">${aPct}%</span></div>
+          <div class="dist-seg-name" style="color:#5B7FA6">Ativo</div>
+        </div>
+      </div>`;
+  }
 
   // TPI por faixa x conversão
   const faixasTPI={'Ate 5min':{n:0,v:0},'5-15min':{n:0,v:0},'15-30min':{n:0,v:0},'30-60min':{n:0,v:0},'60+min':{n:0,v:0}};
