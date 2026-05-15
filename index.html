@@ -41,7 +41,6 @@
     <div class="tab active"  onclick="switchTab('visao',this)">Visão Geral</div>
     <div class="tab"         onclick="switchTab('funil',this)">Funil &amp; Ciclo</div>
     <div class="tab"         onclick="switchTab('produto',this)">Produto &amp; Ticket</div>
-    <div class="tab"         onclick="switchTab('perfil',this)">Perfil &amp; ICP</div>
     <div class="tab"         onclick="switchTab('atend',this)">Atendimento</div>
     <div class="tab"         onclick="switchTab('mkt',this)">Marketing &amp; Ads</div>
   </div>
@@ -127,6 +126,11 @@
     </div>
   </div>
 
+  <div class="block">
+    <div class="bhead"><div class="c-title pill-gray">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
+    <div class="bbody"><div class="hbar-list" id="icp-parceiros"></div></div>
+  </div>
+
 </div>
 
 <!-- ─── ABA 2: FUNIL & CICLO ─── -->
@@ -199,42 +203,6 @@
 
 </div>
 
-<!-- ─── ABA 4: PERFIL & ICP ─── -->
-<div id="panel-perfil" class="tab-panel">
-
-  <div class="sec-title">Perfil Real dos Compradores</div>
-
-  <div class="icp-demo-row">
-    <div class="icp-dc"><div class="icp-dc-v" id="icp-total-vendas">--</div><div class="icp-dc-l">Vendas Analisadas</div></div>
-    <div class="icp-dc"><div class="icp-dc-v" id="icp-ticket">--</div><div class="icp-dc-l">Ticket Médio</div></div>
-    <div class="icp-dc"><div class="icp-dc-v" id="icp-modelo">--</div><div class="icp-dc-l">Modelo Top</div></div>
-    <div class="icp-dc"><div class="icp-dc-v" id="icp-canal">--</div><div class="icp-dc-l">Canal Top</div></div>
-    <div class="icp-dc"><div class="icp-dc-v" id="icp-pgto">--</div><div class="icp-dc-l">Pagamento Top</div></div>
-  </div>
-
-  <div class="g2">
-    <div class="block">
-      <div class="bhead blue"><div class="c-title pill-gray">Cidades que mais compram</div></div>
-      <div class="bbody"><div class="hbar-list" id="icp-cidades"></div></div>
-    </div>
-    <div class="block">
-      <div class="bhead blue"><div class="c-title pill-gray">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
-      <div class="bbody"><div class="hbar-list" id="icp-parceiros"></div></div>
-    </div>
-  </div>
-
-  <div class="g2">
-    <div class="block">
-      <div class="bhead green"><div class="c-title pill-gray">Canal de Entrada</div><div class="bsub">leads por origem</div></div>
-      <div class="bbody"><div class="mbar-list" id="icp-canal-entry"></div></div>
-    </div>
-    <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Win Rate por Canal</div><div class="bsub">vendas / leads</div></div>
-      <div class="bbody"><div class="mbar-list" id="icp-winrate"></div></div>
-    </div>
-  </div>
-
-</div>
 
 <!-- ─── ABA 5: ATENDIMENTO ─── -->
 <div id="panel-atend" class="tab-panel">
@@ -1203,6 +1171,11 @@ function renderVisaoGeral(rd,ez,ads){
 
   // Top cidades — mapa SP
   renderMapaSP(ganho);
+
+  // Vendas por Parceiro (Loja)
+  const loja=ganho.filter(r=>isLoja(r));
+  const parceiros=freq(loja,'Vendedor Responsável').slice(0,8);
+  hbarHtml('icp-parceiros',parceiros.length?parceiros:[['Sem vendas de loja no período',0]],'blue');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1572,7 +1545,6 @@ function renderAll(){
   if(activeTab==='visao')   renderVisaoGeral(rd,ez,ads);
   if(activeTab==='funil')   renderFunil(rd,ez);
   if(activeTab==='produto') renderProduto(rd);
-  if(activeTab==='perfil')  renderPerfil(rd);
   if(activeTab==='atend')   renderAtendimento(ez,rd);
   if(activeTab==='mkt')     renderMarketing(rd,ads);
   atualizaUpd();
