@@ -151,7 +151,12 @@
     <div class="block">
       <div class="bhead"><div class="c-title pill-gray">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
       <div class="bbody">
-        <div class="ciclo-faixas-list" id="ciclo-faixas"></div>
+        <div class="ciclo-hero-row">
+          <div><div class="ciclo-avg-v" id="ciclo-avg-hero">--</div><div class="ciclo-avg-l">dias em média</div></div>
+          <div class="ciclo-minmax" id="ciclo-minmax"></div>
+        </div>
+        <div class="ciclo-spectrum" id="ciclo-spectrum"></div>
+        <div class="ciclo-breakdown" id="ciclo-breakdown"></div>
       </div>
     </div>
   </div>
@@ -1269,13 +1274,26 @@ function renderFunil(rd,ez){
   const fx={'0-7d':0,'8-14d':0,'15-30d':0,'31-60d':0,'60+d':0};
   ciclos.forEach(c=>{if(c<=7)fx['0-7d']++;else if(c<=14)fx['8-14d']++;else if(c<=30)fx['15-30d']++;else if(c<=60)fx['31-60d']++;else fx['60+d']++;});
   const fxFiltrado=Object.entries(fx).filter(([,v])=>v>0);
-  const fxMax=fxFiltrado.length?fxFiltrado[0][1]:1;
-  const fxEl=document.getElementById('ciclo-faixas');
-  if(fxEl) fxEl.innerHTML=fxFiltrado.length?fxFiltrado.map(([l,v])=>`
-    <div class="ciclo-item">
-      <div class="ciclo-lbl">${l}</div>
-      <div class="ciclo-track"><div class="ciclo-fill" style="width:${Math.round(v/fxMax*100)}%"></div></div>
-      <div class="ciclo-val">${v} <span class="ciclo-unit">${v===1?'venda':'vendas'}</span></div>
+  const fxTotal=fxFiltrado.reduce((s,[,v])=>s+v,0)||1;
+  const fxColors={'0-7d':'#1E7A42','8-14d':'#C8941A','15-30d':'#5B7FA6','31-60d':'#C92B1E','60+d':'#7a1810'};
+  // Hero
+  const cicloAvg=ciclos.length?Math.round(avg(ciclos)):null;
+  const heroEl=document.getElementById('ciclo-avg-hero');
+  if(heroEl) heroEl.textContent=cicloAvg!==null?cicloAvg+'d':'--';
+  const mmEl=document.getElementById('ciclo-minmax');
+  if(mmEl&&ciclos.length) mmEl.innerHTML=`<span class="mm-item"><span class="mm-l">mín</span><span class="mm-v">${Math.min(...ciclos)}d</span></span><span class="mm-item"><span class="mm-l">máx</span><span class="mm-v">${Math.max(...ciclos)}d</span></span>`;
+  // Spectrum
+  const specEl=document.getElementById('ciclo-spectrum');
+  if(specEl) specEl.innerHTML=fxFiltrado.length?fxFiltrado.map(([l,v])=>`<div class="ciclo-seg" style="width:${Math.round(v/fxTotal*100)}%;background:${fxColors[l]||'#555'}" title="${l}: ${v} venda(s)"></div>`).join(''):'';
+  // Breakdown
+  const bkEl=document.getElementById('ciclo-breakdown');
+  if(bkEl) bkEl.innerHTML=fxFiltrado.length?fxFiltrado.map(([l,v])=>`
+    <div class="ciclo-bk-row">
+      <div class="ciclo-dot" style="background:${fxColors[l]||'#555'}"></div>
+      <div class="ciclo-bk-lbl">${l}</div>
+      <div class="ciclo-bk-bar"><div style="width:${Math.round(v/fxTotal*100)}%;height:100%;background:${fxColors[l]||'#555'};opacity:.35;border-radius:2px"></div></div>
+      <div class="ciclo-bk-n">${v}</div>
+      <div class="ciclo-bk-pct">${Math.round(v/fxTotal*100)}%</div>
     </div>`).join('')
   :'<div class="empty">Sem fechamentos no período</div>';
 

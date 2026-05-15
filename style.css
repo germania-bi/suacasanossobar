@@ -367,14 +367,23 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   color:var(--txt); flex-shrink:0; width:36px; text-align:right;
 }
 
-/* ─── CICLO FAIXAS ─── */
-.ciclo-faixas-list{ display:flex; flex-direction:column; gap:10px; }
-.ciclo-item{ display:flex; align-items:center; gap:10px; }
-.ciclo-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:.05em; color:var(--txt-mid); text-transform:uppercase; width:46px; flex-shrink:0; }
-.ciclo-track{ flex:1; height:6px; background:rgba(255,200,120,0.07); border-radius:3px; overflow:hidden; }
-.ciclo-fill{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-lt)); border-radius:3px; transition:width .6s ease; }
-.ciclo-val{ font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--txt); white-space:nowrap; text-align:right; min-width:72px; }
-.ciclo-unit{ font-size:11px; font-weight:400; color:var(--txt-mid); }
+/* ─── CICLO DE VENDA ─── */
+.ciclo-hero-row{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
+.ciclo-avg-v{ font-family:'Barlow Condensed',sans-serif; font-size:52px; font-weight:900; color:var(--cream); line-height:1; }
+.ciclo-avg-l{ font-size:11px; color:var(--txt-mid); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+.ciclo-minmax{ display:flex; gap:14px; padding-bottom:6px; }
+.mm-item{ display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.mm-l{ font-size:10px; color:var(--txt-dim); text-transform:uppercase; letter-spacing:.08em; }
+.mm-v{ font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; color:var(--txt-mid); }
+.ciclo-spectrum{ display:flex; height:8px; border-radius:4px; overflow:hidden; gap:2px; margin-bottom:16px; }
+.ciclo-seg{ height:100%; border-radius:4px; transition:width .6s ease; }
+.ciclo-breakdown{ display:flex; flex-direction:column; gap:7px; }
+.ciclo-bk-row{ display:flex; align-items:center; gap:8px; }
+.ciclo-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.ciclo-bk-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--txt-mid); width:46px; flex-shrink:0; }
+.ciclo-bk-bar{ flex:1; height:4px; background:rgba(255,200,120,0.06); border-radius:2px; overflow:hidden; }
+.ciclo-bk-n{ font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:800; color:var(--txt); width:24px; text-align:right; flex-shrink:0; }
+.ciclo-bk-pct{ font-size:11px; color:var(--txt-mid); width:32px; text-align:right; flex-shrink:0; }
 
 /* ─── MBAR (mini bar, inline) ─── */
 .mbar-list{ display:flex; flex-direction:column; gap:8px; }
