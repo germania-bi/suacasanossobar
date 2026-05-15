@@ -158,6 +158,31 @@ body{
   color:var(--txt-faint); padding:0 10px 0 0; flex-shrink:0;
   display:flex; align-items:center; transition:color .15s; cursor:pointer;
 }
+/* ─── TOOLTIP "i" ─── */
+.tip{
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  width:13px; height:13px; border-radius:50%;
+  background:rgba(255,200,120,0.10); border:0.8px solid rgba(255,200,120,0.20);
+  color:var(--txt-dim); font-size:8px; font-weight:800; font-style:italic;
+  cursor:default; vertical-align:middle; margin-left:4px; flex-shrink:0;
+  font-family:'Barlow Condensed',sans-serif; letter-spacing:0; line-height:1;
+}
+.tip::after{
+  content:attr(data-tip);
+  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  background:#1e1608; border:0.8px solid rgba(255,200,120,0.18);
+  color:var(--txt-mid); font-size:11px; font-weight:400; font-style:normal;
+  padding:7px 11px; border-radius:6px; line-height:1.5;
+  white-space:normal; min-width:200px; max-width:240px; text-align:left;
+  pointer-events:none; opacity:0; transition:opacity .18s;
+  z-index:200; box-shadow:0 4px 16px rgba(0,0,0,.5);
+}
+.tip::before{
+  content:''; position:absolute; bottom:calc(100% + 2px); left:50%; transform:translateX(-50%);
+  border:5px solid transparent; border-top-color:rgba(255,200,120,0.18);
+  pointer-events:none; opacity:0; transition:opacity .18s; z-index:201;
+}
+.tip:hover::after,.tip:hover::before{ opacity:1; }
 .date-sep{ color:var(--txt-faint); font-size:11px; padding:0 4px; flex-shrink:0; }
 
 /* ─── FLATPICKR overrides ─── */
