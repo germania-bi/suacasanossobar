@@ -608,6 +608,12 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   .stbl-wrap{ overflow-x:auto; }
 }
 
+/* ─── BLOCK MAP (card que contém mapa) ─── */
+.block-map{ display:flex; flex-direction:column; }
+.block-map .bbody{ flex:1; }
+.bhead.no-accent{ border-bottom:none; }
+.bhead.no-accent::before{ display:none; }
+
 /* ─── LEAFLET MAP OVERRIDES ─── */
 .leaflet-container{ background:#1A1208; font-family:'Barlow',sans-serif; border-radius:0 0 6px 6px; outline:none; }
 .leaflet-control-zoom{ border:0.8px solid rgba(255,200,120,0.18) !important; }
