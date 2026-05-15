@@ -304,15 +304,16 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:var(--fs-label); color:var(--txt-mid);
   text-transform:uppercase; letter-spacing:.09em; margin-top:3px;
 }
-.mkpi-d{ display:flex; align-items:center; gap:5px; margin-top:4px; white-space:nowrap; }
+.mkpi-d{ display:flex; align-items:center; gap:6px; margin-top:6px; white-space:nowrap; }
 .mkpi-d-val{
-  font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700;
-  letter-spacing:.04em; color:#9A9A9A;
+  display:inline-flex; align-items:center; gap:1px;
+  font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.03em; padding:2px 7px; border-radius:20px;
 }
-.mkpi-d-val.up  { color:#4EAD72; }
-.mkpi-d-val.dn  { color:#E05C50; }
-.mkpi-d-val.neu { color:#9A9A9A; }
-.mkpi-d-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--txt-faint); font-weight:400; }
+.mkpi-d-val.up  { color:#4EAD72; background:rgba(78,173,114,0.12); border:0.8px solid rgba(78,173,114,0.22); }
+.mkpi-d-val.dn  { color:#E05C50; background:rgba(224,92,80,0.10);  border:0.8px solid rgba(224,92,80,0.20);  }
+.mkpi-d-val.neu { color:#9A9A9A; background:rgba(155,155,155,0.08);border:0.8px solid rgba(155,155,155,0.15); }
+.mkpi-d-lbl{ font-family:'Barlow',sans-serif; font-size:9px; color:var(--txt-faint); font-weight:400; letter-spacing:.02em; }
 
 /* ─── CHART BOX ─── */
 .chart-box{
