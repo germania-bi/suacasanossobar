@@ -631,3 +631,11 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   box-shadow:0 3px 10px rgba(0,0,0,0.5); white-space:nowrap;
 }
 .mapa-tooltip::before{ display:none; }
+.mapa-rank-label{ background:transparent !important; border:none !important; }
+.mapa-rank-label span{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:10px; font-weight:800; letter-spacing:.04em;
+  color:rgba(255,200,120,0.80);
+  text-shadow:0 1px 3px rgba(0,0,0,0.9);
+  white-space:nowrap;
+}

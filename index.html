@@ -125,7 +125,7 @@
       <div class="bbody" id="vg-canal-body"><div class="empty"><div class="ei">⏳</div>Carregando...</div></div>
     </div>
     <div class="block block-map">
-      <div class="bhead blue"><div class="c-title pill-blue">Top Cidades</div></div>
+      <div class="bhead blue"><div class="c-title pill-blue">Mapa de Vendas</div><div class="bsub" id="vg-mapa-sub"></div></div>
       <div class="bbody" style="padding:0;flex:1;display:flex;flex-direction:column"><div id="vg-cidades-map" style="flex:1;min-height:180px;border-radius:0 0 6px 6px"></div></div>
     </div>
   </div>
@@ -868,18 +868,29 @@ let _mapaLeaflet=null, _mapaLayers=[];
 function renderMapaSP(ganho){
   const el=document.getElementById('vg-cidades-map');
   if(!el) return;
-  const counts={};
+  // Acumula dados por cidade
+  const cityData={};
   ganho.forEach(r=>{
     const raw=(r['Unidades de atendimento']||'').trim();
     if(!raw) return;
     const canon=resolveCity(raw)||raw;
-    counts[canon]=(counts[canon]||0)+1;
+    if(!cityData[canon]) cityData[canon]={n:0,fat:0,modelos:{}};
+    cityData[canon].n++;
+    const v=parseFloat((r['Valor Único']||'0').replace(/\./g,'').replace(',','.'))||0;
+    cityData[canon].fat+=v;
+    const prod=r['Produtos']||'';
+    const mod=prod.includes('Master')?'Master':prod.includes('Mini')?'Mini':'—';
+    cityData[canon].modelos[mod]=(cityData[canon].modelos[mod]||0)+1;
   });
-  if(!Object.keys(counts).length){
+  if(!Object.keys(cityData).length){
     if(_mapaLeaflet){_mapaLeaflet.remove();_mapaLeaflet=null;_mapaLayers=[];}
     el.innerHTML='<div class="empty" style="height:100%;min-height:120px;justify-content:center"><div class="ei">📍</div>Sem cidades no período</div>';
+    const sub=document.getElementById('vg-mapa-sub');if(sub) sub.textContent='';
     return;
   }
+  // bsub resumo
+  const sub=document.getElementById('vg-mapa-sub');
+  if(sub) sub.textContent=Object.keys(cityData).length+' cidades · '+ganho.length+' venda'+(ganho.length!==1?'s':'');
   if(!_mapaLeaflet){
     el.innerHTML='';
     try{
@@ -894,28 +905,37 @@ function renderMapaSP(ganho){
     _mapaLayers.forEach(l=>l.remove());
     _mapaLayers=[];
   }
-  const max=Math.max(...Object.values(counts),1);
+  const sorted=Object.entries(cityData).filter(([c])=>CIDADES_SP[c]).sort((a,b)=>b[1].n-a[1].n);
+  const max=Math.max(...sorted.map(([,d])=>d.n),1);
   const bounds=[];
-  Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([cidade,n])=>{
+  sorted.forEach(([cidade,d],i)=>{
+    const rank=i+1;
     const coord=CIDADES_SP[cidade];
-    if(!coord) return;
     const ll=[coord.lat,coord.lon];
-    // Círculo de área de atuação (proporcional às vendas, translúcido)
-    const rArea=Math.max(14,Math.round(Math.sqrt(n/max)*40));
+    const rArea=Math.max(14,Math.round(Math.sqrt(d.n/max)*40));
+    const topMod=Object.entries(d.modelos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    const fatStr=d.fat>0?' · R$'+Math.round(d.fat/1000)+'k':'';
+    const rankStr=rank<=3?' <span style="opacity:.7">#'+rank+'</span>':'';
     const area=L.circleMarker(ll,{
-      radius:rArea, fillColor:'#C92B1E', color:'#C92B1E',
-      weight:0.8, fillOpacity:0.10, opacity:0.30
-    }).bindTooltip(`<strong>${cidade}</strong>: ${n} venda${n>1?'s':''}`,{
+      radius:rArea,fillColor:'#C92B1E',color:'#C92B1E',
+      weight:0.8,fillOpacity:0.10,opacity:0.30
+    }).bindTooltip(`<strong>${cidade}</strong>${rankStr}<br>${d.n} venda${d.n>1?'s':''}${fatStr}<br><span style="opacity:.7">${topMod}</span>`,{
       className:'mapa-tooltip',sticky:true,direction:'top',offset:[0,-4]
     });
-    // Ponto de venda (fixo, sólido)
     const dot=L.circleMarker(ll,{
-      radius:6, fillColor:'#E84040', color:'#ff9090',
-      weight:1.5, fillOpacity:0.95, opacity:1, interactive:false
+      radius:6,fillColor:'#E84040',color:'#ff9090',
+      weight:1.5,fillOpacity:0.95,opacity:1,interactive:false
     });
     area.addTo(_mapaLeaflet);
     dot.addTo(_mapaLeaflet);
     _mapaLayers.push(area,dot);
+    if(rank<=5){
+      const lbl=L.marker(ll,{
+        icon:L.divIcon({className:'mapa-rank-label',html:`<span>#${rank}</span>`,iconSize:[24,18],iconAnchor:[12,26]}),
+        interactive:false,zIndexOffset:500
+      }).addTo(_mapaLeaflet);
+      _mapaLayers.push(lbl);
+    }
     bounds.push(ll);
   });
   if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[24,24],maxZoom:9});}catch(e){}
