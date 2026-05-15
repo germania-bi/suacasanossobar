@@ -1052,28 +1052,31 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Mini funil — deals Em Andamento por etapa
-  const emAndamento=rd.filter(r=>estadoNorm(r)==='Em Andamento');
-  const etapaMapVG={};
-  emAndamento.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMapVG[e]=(etapaMapVG[e]||0)+1;});
-  const etapasVG=Object.entries(etapaMapVG).sort((a,b)=>{
-    const ia=ETAPAS_ORDER.indexOf(a[0]),ib=ETAPAS_ORDER.indexOf(b[0]);
-    if(ia>=0&&ib>=0) return ia-ib;
-    if(ia>=0) return -1;if(ib>=0) return 1;
-    return b[1]-a[1];
-  });
-  const totalPipe=Math.max(...etapasVG.map(e=>e[1]),1);
+  // Win rate por etapa — rawRD filtrado só por canal (sem filtro de data)
+  const canal=filtroCanal();
+  const rdAll=rawRD.filter(r=>!(canal==='germania'&&isLoja(r))&&!(canal==='loja'&&!isLoja(r)));
   const pipeEl=document.getElementById('vg-pipeline');
   const subPipe=document.getElementById('vg-pipeline-sub');
-  if(subPipe) subPipe.textContent=emAndamento.length+' em aberto';
-  if(pipeEl) pipeEl.innerHTML=etapasVG.length
-    ?etapasVG.map(([e,n])=>`
-      <div class="funil-item">
-        <div class="funil-etapa" title="${e}">${e}</div>
-        <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/totalPipe*100)}%"></div></div>
-        <div class="funil-count">${n}</div>
-      </div>`).join('')
-    :'<div class="empty"><div class="ei">📊</div>Sem deals em aberto</div>';
+  if(subPipe) subPipe.textContent='win rate por etapa';
+  if(pipeEl) pipeEl.innerHTML=ETAPAS_ORDER.map((etapa,i)=>{
+    const reached=rdAll.filter(r=>{
+      if(estadoNorm(r)==='Ganho') return true;
+      const idx=ETAPAS_ORDER.indexOf((r['Etapa']||'').trim());
+      return idx>=i;
+    }).length;
+    const won=rdAll.filter(r=>{
+      if(estadoNorm(r)!=='Ganho') return false;
+      const idx=ETAPAS_ORDER.indexOf((r['Etapa']||'').trim());
+      return idx>=i||idx===-1;
+    }).length;
+    const pct=reached>0?Math.round(won/reached*100):0;
+    const label=etapa.replace('Atendimento / Demonstração','Atendimento / Demo');
+    return `<div class="funil-item">
+      <div class="funil-etapa" title="${etapa}">${label}</div>
+      <div class="funil-track"><div class="funil-fill" style="width:${pct}%"></div></div>
+      <div class="funil-count">${pct}%</div>
+    </div>`;
+  }).join('');
 
   // Canal Germânia breakdown
   const canais=[
