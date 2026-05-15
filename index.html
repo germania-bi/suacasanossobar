@@ -986,11 +986,13 @@ function renderVisaoGeral(rd,ez,ads){
   const vals=dk.map(k=>diasMap[k]);
   const maxVal=Math.max(...vals,0);
   const maxIdx=vals.indexOf(maxVal);
-  const radii=vals.map((_,i)=>i===maxIdx&&maxVal>0?7:3);
+  const radii=vals.map((_,i)=>i===maxIdx&&maxVal>0?7:5);
   const datasets=[{
     label:'Período atual',data:vals,
     borderColor:'#C92B1E',backgroundColor:'rgba(201,43,30,0.15)',
-    tension:0.4,pointRadius:radii,pointHoverRadius:7,fill:true
+    tension:0.4,pointRadius:radii,pointHoverRadius:9,
+    pointBackgroundColor:'transparent',pointBorderColor:'#C92B1E',pointBorderWidth:2,
+    fill:true
   }];
   const subEl=document.getElementById('vg-leadsdia-sub');
   if(prev&&dlbl){
@@ -1014,7 +1016,10 @@ function renderVisaoGeral(rd,ez,ads){
       datasets.push({
         label:dlbl,data:prevVals,
         borderColor:'rgba(200,148,26,0.70)',backgroundColor:'transparent',
-        borderDash:[4,3],tension:0.4,pointRadius:1,pointHoverRadius:4,fill:false
+        borderDash:[4,3],tension:0.4,
+        pointRadius:4,pointHoverRadius:6,
+        pointBackgroundColor:'transparent',pointBorderColor:'rgba(200,148,26,0.85)',pointBorderWidth:1.5,
+        fill:false
       });
       if(subEl) subEl.innerHTML=
         `<span class="leg-item"><span class="leg-line-s"></span>Atual</span>`+
