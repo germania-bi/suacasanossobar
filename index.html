@@ -1270,7 +1270,8 @@ function renderFunil(rd,ez){
   // Ciclo faixas
   const fx={'0-7d':0,'8-14d':0,'15-30d':0,'31-60d':0,'60+d':0};
   ciclos.forEach(c=>{if(c<=7)fx['0-7d']++;else if(c<=14)fx['8-14d']++;else if(c<=30)fx['15-30d']++;else if(c<=60)fx['31-60d']++;else fx['60+d']++;});
-  barChart('ch-ciclo',Object.keys(fx),[{label:'Vendas',data:Object.values(fx),backgroundColor:['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa'],borderWidth:0}]);
+  dc('ch-ciclo');const ctxCiclo=document.getElementById('ch-ciclo');
+  if(ctxCiclo) charts['ch-ciclo']=new Chart(ctxCiclo,{type:'bar',data:{labels:Object.keys(fx),datasets:[{data:Object.values(fx),backgroundColor:['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa'],borderWidth:0,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:true,layout:{padding:0},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6B5C40',font:{size:9}},border:{display:false}},y:{display:false,beginAtZero:true}}}});
   mbar('ciclo-faixas',Object.entries(fx).filter(([,v])=>v>0),'gold');
 
 
