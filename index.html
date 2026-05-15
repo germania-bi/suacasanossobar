@@ -1349,12 +1349,10 @@ function renderProduto(rd){
     const total=entries.reduce((s,[,,v])=>s+v,0)||1;
     el.innerHTML=`
       <div class="dist-bar">${entries.map(([,cor,v])=>`<div style="width:${Math.round(v/total*100)}%;background:${cor};height:100%"></div>`).join('')}</div>
-      <div class="dist-items">${entries.map(([l,cor,v])=>`
-        <div class="dist-item">
-          <span class="dist-dot" style="background:${cor}"></span>
-          <span class="dist-n">${v}</span>
-          <span class="dist-name">${l}</span>
-          <span class="dist-pct">${Math.round(v/total*100)}%</span>
+      <div class="dist-below">${entries.map(([l,cor,v])=>`
+        <div class="dist-seg-lbl" style="width:${Math.round(v/total*100)}%">
+          <div class="dist-seg-count"><span class="dist-n">${v}</span><span class="dist-pct">${Math.round(v/total*100)}%</span></div>
+          <div class="dist-seg-name" style="color:${cor}">${l}</div>
         </div>`).join('')}</div>`;
   }
   renderDist('dist-modelo',[['Master','#C92B1E',master],['Mini','#C8941A',mini||0]].filter(([,,v])=>v>0));
