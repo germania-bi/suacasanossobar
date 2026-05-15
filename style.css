@@ -383,6 +383,7 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .dist-bar{ height:8px; border-radius:4px; overflow:hidden; display:flex; gap:2px; }
 .dist-below{ display:flex; margin-top:10px; }
 .dist-seg-lbl{ display:flex; flex-direction:column; align-items:flex-end; padding-right:6px; overflow:hidden; }
+.dist-seg-lbl:first-child{ align-items:flex-start; padding-right:0; padding-left:0; }
 .dist-seg-lbl:last-child{ padding-right:0; }
 .dist-seg-count{ display:flex; align-items:baseline; gap:5px; }
 .dist-n{ font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:var(--txt); line-height:1; }
