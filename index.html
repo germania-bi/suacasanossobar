@@ -412,6 +412,12 @@ const fmt=d=>d.toISOString().split('T')[0];
 function parseDate(s){
   if(!s||s==='-'||!s.trim()||s==='0') return null;
   s=s.trim();
+  // ISO: YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    const pts=s.split(/[-T ]/);
+    const d=new Date(+pts[0],+pts[1]-1,+pts[2]);
+    return isNaN(d)?null:d;
+  }
   const p=s.split(' '),dp=p[0].split('/');
   if(dp.length<3) return null;
   let a=Number(dp[0]),b=Number(dp[1]),c=Number(dp[2]);
@@ -419,15 +425,20 @@ function parseDate(s){
   const twoDigit=(dp[2].length<=2);
   if(c<100) c+=2000;
   let dd,mm;
-  if(a>12)          {dd=a;mm=b;}       // a>12 → certamente dia (DD/MM/...)
-  else if(b>12)     {mm=a;dd=b;}       // b>12 → certamente dia, a é mês (M/D/...)
-  else if(twoDigit) {mm=a;dd=b;}       // ano 2 dígitos → formato EZ = M/D/YY
-  else              {dd=a;mm=b;}       // ano 4 dígitos → formato RD = DD/MM/YYYY
+  if(a>12)          {dd=a;mm=b;}
+  else if(b>12)     {mm=a;dd=b;}
+  else if(twoDigit) {mm=a;dd=b;}
+  else              {dd=a;mm=b;}
   if(mm<1||mm>12||dd<1||dd>31) return null;
   if(p[1]){const tp=p[1].split(':');return new Date(c,mm-1,dd,Number(tp[0])||0,Number(tp[1])||0);}
   return new Date(c,mm-1,dd);
 }
 
+function parseBRL(s){
+  if(!s) return 0;
+  const v=parseFloat(s.replace(/\./g,'').replace(',','.'));
+  return isNaN(v)?0:v;
+}
 function parseMin(s){
   if(!s||s==='-'||s==='0') return null;
   const p=s.split(':');
@@ -582,12 +593,11 @@ function filterEZ(){
 }
 function filterADS(){
   return rawADS.filter(r=>{
-    const d=parseDate(r['Início dos relatórios']||r['Data']||'');
+    const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
     if(!d) return false;
     if(dateFrom&&d<dateFrom) return false;
     if(dateTo&&d>dateTo) return false;
-    const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));
-    return v>0;
+    return true;
   });
 }
 
@@ -1625,7 +1635,7 @@ function renderMarketing(rd,ads){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
   const fat=ganhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-  const investTotal=ads.reduce((s,r)=>{const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const investTotal=ads.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']),0);
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
@@ -1644,8 +1654,8 @@ function renderMarketing(rd,ads){
     const pRdC=rawRD.filter(r=>{if(isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
     const pFat=pGanhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-    const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||'');return d&&d>=prev.from&&d<=prev.to;});
-    const pInvest=pAds.reduce((s,r)=>{const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
+    const pInvest=pAds.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']),0);
     const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
     const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
     const pRoi=pInvest?pFat/pInvest:0;
@@ -1728,12 +1738,12 @@ function renderMarketing(rd,ads){
   if(ads.length){
     const semanas={};
     ads.forEach(r=>{
-      const d=parseDate(r['Início dos relatórios']||r['Data']||'');
+      const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
       if(!d) return;
       const wk=fmt(new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay()));
       if(!semanas[wk]) semanas[wk]={invest:0,leads:0};
-      const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));
-      if(!isNaN(v)) semanas[wk].invest+=v;
+      const v=parseBRL(r['Valor gasto (BRL)']);
+      semanas[wk].invest+=v;
       const l=parseInt(r['Resultados']||'0');
       if(!isNaN(l)) semanas[wk].leads+=l;
     });
