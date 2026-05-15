@@ -269,12 +269,12 @@
 <div id="panel-mkt" class="tab-panel">
 
   <div class="mkpi-row">
-    <div class="mkpi"><div class="mkpi-v gold"  id="mk-invest">--</div><div class="mkpi-l">Investimento Meta</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="mk-leads-ads">--</div><div class="mkpi-l">Leads (Canal)</div></div>
-    <div class="mkpi"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">CPL</div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="mk-conv-ads">--</div><div class="mkpi-l">Conversão</div></div>
-    <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est.</div></div>
+    <div class="mkpi"><div class="mkpi-v gold"  id="mk-invest">--</div><div class="mkpi-l">Investimento Meta</div><div class="mkpi-d" id="mk-invest-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-leads-ads">--</div><div class="mkpi-l">Leads (Canal)</div><div class="mkpi-d" id="mk-leads-ads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal</div><div class="mkpi-d" id="mk-vendas-ads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">CPL <span class="tip" data-tip="Custo por Lead — investimento Meta dividido pelo número de resultados gerados pelos anúncios.">i</span></div><div class="mkpi-d" id="mk-cpl-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-conv-ads">--</div><div class="mkpi-l">Conversão</div><div class="mkpi-d" id="mk-conv-ads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
   </div>
 
   <div class="g2">
@@ -321,7 +321,7 @@
     </div>
     <div>
       <div class="block mb">
-        <div class="bhead blue"><div class="c-title pill-gray">Funil por Origem</div></div>
+        <div class="bhead"><div class="c-title pill-gray">Funil por Origem</div></div>
         <div class="bbody" style="padding:0 16px">
           <table class="stbl">
             <thead><tr>
@@ -335,20 +335,20 @@
           </table>
         </div>
       </div>
-      <div class="chart-box">
-        <div class="ctitle"><span class="c-title pill-gray">Distribuição de Leads por Canal</span></div>
-        <canvas id="ch-leads-canal"></canvas>
+      <div class="block">
+        <div class="bhead"><div class="c-title pill-gray">Distribuição por Canal</div><div class="bsub">leads por origem</div></div>
+        <div class="bbody"><div id="ch-leads-canal"></div></div>
       </div>
     </div>
   </div>
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
       <div class="bbody" style="padding-top:12px"><canvas id="ch-diasemana" style="max-height:160px"></canvas></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
       <div class="bbody" style="padding-top:12px"><canvas id="ch-invest-leads" style="max-height:160px"></canvas></div>
     </div>
   </div>
@@ -1638,6 +1638,26 @@ function renderMarketing(rd,ads){
   document.getElementById('mk-conv-ads').textContent=conv+'%';
   document.getElementById('mk-roi').textContent=roi?roi.toFixed(1)+'x':'--';
 
+  // Deltas KPIs Marketing
+  const prev=getPrevPeriod();const dlbl=getPrevLabel();
+  if(prev){
+    const pRdC=rawRD.filter(r=>{if(isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
+    const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
+    const pFat=pGanhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||'');return d&&d>=prev.from&&d<=prev.to;});
+    const pInvest=pAds.reduce((s,r)=>{const v=parseFloat((r['Valor gasto (BRL)']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
+    const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
+    const pRoi=pInvest?pFat/pInvest:0;
+    const pConv=pRdC.length?Math.round(pGanhoGerm.length/pRdC.length*100):0;
+    setDelta('mk-invest-d',investTotal,pInvest,false,true,dlbl);
+    setDelta('mk-leads-ads-d',leadsAds||rdC.length,pLeadsAds||pRdC.length,false,false,dlbl);
+    setDelta('mk-vendas-ads-d',ganhoGerm.length,pGanhoGerm.length,false,false,dlbl);
+    setDelta('mk-cpl-d',cpl||null,pCpl||null,false,true,dlbl);
+    setDelta('mk-conv-ads-d',conv,pConv,true,false,dlbl);
+    setDelta('mk-roi-d',roi?Math.round(roi*10)/10:null,pRoi?Math.round(pRoi*10)/10:null,false,false,dlbl);
+  }
+
   function canalStats(canal){
     const leads=rdC.filter(r=>parseCampanha(r['Campanha'])===canal);
     const vendas=leads.filter(r=>estadoNorm(r)==='Ganho').length;
@@ -1665,8 +1685,34 @@ function renderMarketing(rd,ads){
       <td><span class="conv-badge ${s.conv>=15?'hi':s.conv>=5?'mid':'lo'}">${s.conv}%</span></td>
     </tr>`).join('');
 
-  // Donut canais
-  donut('ch-leads-canal',['WPP Button','Form Direto','Orgânico'],[wppS.leads,formS.leads,orgS.leads],['#1E7A42','#5B7FA6','#A89870']);
+  // Distribuição por Canal — split bar
+  const canalEl=document.getElementById('ch-leads-canal');
+  if(canalEl){
+    const totL=wppS.leads+formS.leads+orgS.leads||1;
+    const wPct=Math.round(wppS.leads/totL*100);
+    const fPct=Math.round(formS.leads/totL*100);
+    const oPct=100-wPct-fPct;
+    canalEl.innerHTML=`
+      <div class="dist-bar" style="height:10px;margin-bottom:0">
+        <div style="width:${wPct}%;background:#1E7A42;height:100%"></div>
+        <div style="width:${fPct}%;background:#5B7FA6;height:100%"></div>
+        <div style="width:${oPct}%;background:#A89870;height:100%"></div>
+      </div>
+      <div class="dist-below">
+        <div class="dist-seg-lbl" style="width:${wPct}%">
+          <div class="dist-seg-count"><span class="dist-n">${wppS.leads}</span><span class="dist-pct">${wPct}%</span></div>
+          <div class="dist-seg-name" style="color:#1E7A42">WPP Button</div>
+        </div>
+        <div class="dist-seg-lbl" style="width:${fPct}%">
+          <div class="dist-seg-count"><span class="dist-n">${formS.leads}</span><span class="dist-pct">${fPct}%</span></div>
+          <div class="dist-seg-name" style="color:#5B7FA6">Form Direto</div>
+        </div>
+        <div class="dist-seg-lbl" style="width:${oPct}%">
+          <div class="dist-seg-count"><span class="dist-n">${orgS.leads}</span><span class="dist-pct">${oPct}%</span></div>
+          <div class="dist-seg-name" style="color:#A89870">Orgânico</div>
+        </div>
+      </div>`;
+  }
 
   // Melhor dia da semana
   const diasSemana=['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
