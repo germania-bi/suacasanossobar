@@ -105,7 +105,6 @@
     <div class="mkpi"><div class="mkpi-v blue"   id="vg-loja">--</div><div class="mkpi-l">Vendas de Loja</div><div class="mkpi-d" id="vg-loja-d"></div></div>
     <div class="mkpi"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado</div><div class="mkpi-d" id="vg-fat-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão</div><div class="mkpi-d" id="vg-conv-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v gold"   id="vg-ticket">--</div><div class="mkpi-l">Ticket Médio</div><div class="mkpi-d" id="vg-ticket-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div><div class="mkpi-d" id="vg-ciclo-d"></div></div>
   </div>
 
@@ -967,7 +966,6 @@ function renderVisaoGeral(rd,ez,ads){
   document.getElementById('vg-loja').textContent=vendLoja.length;
   document.getElementById('vg-fat').textContent=fmtBRLk(fat);
   document.getElementById('vg-conv').textContent=conv+'%';
-  document.getElementById('vg-ticket').textContent=fmtBRLk(ticket);
   document.getElementById('vg-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+'d':'--';
 
   // Delta de período
@@ -979,7 +977,6 @@ function renderVisaoGeral(rd,ez,ads){
   setDelta('vg-loja-d',  vendLoja.length,   p?.vendLoja,false,false,dlbl);
   setDelta('vg-fat-d',   fat,               p?.fat,     false,true, dlbl);
   setDelta('vg-conv-d',  conv,              p?.conv,    true, false,dlbl);
-  setDelta('vg-ticket-d',ticket,            p?.ticket,  false,true, dlbl);
   setDelta('vg-ciclo-d', ciclos.length?Math.round(avg(ciclos)):0, p?.ciclo, false,false,dlbl);
 
   // Leads por dia — com linha comparativa e tooltip
