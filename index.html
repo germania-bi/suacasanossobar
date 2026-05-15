@@ -128,7 +128,7 @@
 
   <div class="block">
     <div class="bhead"><div class="c-title pill-gray">Vendas por Parceiro</div><div class="bsub">Venda de Loja</div></div>
-    <div class="bbody"><div class="hbar-list" id="icp-parceiros"></div></div>
+    <div class="bbody"><div class="parc-grid" id="icp-parceiros"></div></div>
   </div>
 
 </div>
@@ -1174,8 +1174,14 @@ function renderVisaoGeral(rd,ez,ads){
 
   // Vendas por Parceiro (Loja)
   const loja=ganho.filter(r=>isLoja(r));
-  const parceiros=freq(loja,'Vendedor Responsável').slice(0,8);
-  hbarHtml('icp-parceiros',parceiros.length?parceiros:[['Sem vendas de loja no período',0]],'blue');
+  const parceiros=freq(loja,'Vendedor Responsável').slice(0,12);
+  const parEl=document.getElementById('icp-parceiros');
+  if(parEl) parEl.innerHTML=parceiros.length?parceiros.map(([n,v])=>`
+    <div class="parc-item">
+      <div class="parc-name" title="${n}">${n}</div>
+      <div class="parc-badge">${v}</div>
+    </div>`).join('')
+  :'<div class="empty">Sem vendas de loja no período</div>';
 }
 
 // ═══════════════════════════════════════════════════════
