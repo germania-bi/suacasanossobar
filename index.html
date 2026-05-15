@@ -176,12 +176,12 @@
 <div id="panel-produto" class="tab-panel">
 
   <div class="mkpi-row">
-    <div class="mkpi"><div class="mkpi-v"       id="pr-master">--</div><div class="mkpi-l">Kit Master</div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="pr-mini">--</div><div class="mkpi-l">Kit Mini</div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="pr-110">--</div><div class="mkpi-l">110v</div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="pr-220">--</div><div class="mkpi-l">220v</div></div>
-    <div class="mkpi"><div class="mkpi-v gold"  id="pr-ticket">--</div><div class="mkpi-l">Ticket Médio</div></div>
-    <div class="mkpi"><div class="mkpi-v gold"  id="pr-fat">--</div><div class="mkpi-l">Faturado</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-master">--</div><div class="mkpi-l">Kit Master</div><div class="mkpi-d" id="pr-master-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-mini">--</div><div class="mkpi-l">Kit Mini</div><div class="mkpi-d" id="pr-mini-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-110">--</div><div class="mkpi-l">110v</div><div class="mkpi-d" id="pr-110-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="pr-220">--</div><div class="mkpi-l">220v</div><div class="mkpi-d" id="pr-220-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v gold"  id="pr-ticket">--</div><div class="mkpi-l">Ticket Médio</div><div class="mkpi-d" id="pr-ticket-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v gold"  id="pr-fat">--</div><div class="mkpi-l">Faturado</div><div class="mkpi-d" id="pr-fat-d"></div></div>
   </div>
 
   <div class="g3">
@@ -192,12 +192,12 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Vendas por Mês</div></div>
-      <div class="bbody" style="padding-top:12px"><canvas id="ch-vendas-mes" style="max-height:200px"></canvas></div>
+      <div class="bhead"><div class="c-title pill-gray">Mix de Produto</div><div class="bsub">modelo × voltagem</div></div>
+      <div class="bbody"><div class="mix-list" id="pr-mix"></div></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Ticket por Canal</div></div>
-      <div class="bbody"><div class="mbar-list" id="pr-ticket-canal"></div></div>
+      <div class="bhead"><div class="c-title pill-gray">Modelo por Canal</div><div class="bsub"><span style="color:#C92B1E">■</span> Master &nbsp;<span style="color:#C8941A">■</span> Mini</div></div>
+      <div class="bbody"><div class="mc-list" id="pr-modelo-canal"></div></div>
     </div>
   </div>
 
@@ -1316,25 +1316,71 @@ function renderProduto(rd){
   document.getElementById('pr-ticket').textContent=fmtBRLk(ticket);
   document.getElementById('pr-fat').textContent=fmtBRLk(fat);
 
+  // Deltas KPIs
+  const prev=getPrevPeriod();const dlbl=getPrevLabel();
+  if(prev){
+    const pGanho=rawRD.filter(r=>{const canal=filtroCanal();if(canal==='germania'&&isLoja(r))return false;if(canal==='loja'&&!isLoja(r))return false;const d=parseDate(r['Data de fechamento']);return estadoNorm(r)==='Ganho'&&d&&d>=prev.from&&d<=prev.to;});
+    const pProd=pGanho.map(r=>parseProduto(r['Produtos']));
+    const pMaster=pProd.filter(p=>p.modelo==='Master').length;
+    const pMini=pProd.filter(p=>p.modelo==='Mini').length;
+    const pV110=pProd.filter(p=>p.voltagem==='110v').length;
+    const pV220=pProd.filter(p=>p.voltagem==='220v').length;
+    const pVendGerm=pGanho.filter(r=>!isLoja(r));
+    const pFat=pVendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pTicket=pVendGerm.length?pFat/pVendGerm.length:0;
+    setDelta('pr-master-d',master,pMaster,false,false,dlbl);
+    setDelta('pr-mini-d',mini,pMini,false,false,dlbl);
+    setDelta('pr-110-d',v110,pV110,false,false,dlbl);
+    setDelta('pr-220-d',v220,pV220,false,false,dlbl);
+    setDelta('pr-ticket-d',ticket,pTicket,false,true,dlbl);
+    setDelta('pr-fat-d',fat,pFat,false,true,dlbl);
+  }
+
   if(master||mini)  donut('ch-modelo',['Master','Mini'],[master,mini||0],['#C92B1E','#C8941A']);
   if(v110||v220)    donut('ch-volt',['110v','220v'],[v110,v220],['#5B7FA6','#1E7A42']);
   const pgto=freq(ganho,'Forma de pagamento');
   if(pgto.length)   donut('ch-pgto',pgto.map(e=>e[0]),pgto.map(e=>e[1]));
 
-  // Vendas por mês
-  const meses={};
-  ganho.forEach(r=>{const d=parseDate(r['Data de fechamento']);if(d){const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');meses[k]=(meses[k]||0)+1;}});
-  const mk=Object.keys(meses).sort();
-  barChart('ch-vendas-mes',mk,[{label:'Vendas',data:mk.map(k=>meses[k]),backgroundColor:'rgba(201,43,30,0.7)',borderColor:'#C92B1E',borderWidth:1}]);
+  // Mix de Produto (Modelo × Voltagem)
+  const combos=[
+    ['Master 110v','#C92B1E',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Master'&&p.voltagem==='110v';}).length],
+    ['Master 220v','#e05548',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Master'&&p.voltagem==='220v';}).length],
+    ['Mini 110v',  '#C8941A',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='110v';}).length],
+    ['Mini 220v',  '#e8b84b',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='220v';}).length],
+  ].filter(([,, v])=>v>0);
+  const comboTotal=combos.reduce((s,[,,v])=>s+v,0)||1;
+  const mixEl=document.getElementById('pr-mix');
+  if(mixEl) mixEl.innerHTML=combos.length?combos.map(([l,cor,v])=>`
+    <div class="mix-item">
+      <div class="mix-dot" style="background:${cor}"></div>
+      <div class="mix-lbl">${l}</div>
+      <div class="mix-track"><div style="width:${Math.round(v/comboTotal*100)}%;background:${cor};opacity:.7;height:100%;border-radius:2px"></div></div>
+      <div class="mix-n">${v}</div>
+      <div class="mix-pct">${Math.round(v/comboTotal*100)}%</div>
+    </div>`).join('')
+  :'<div class="empty">Sem fechamentos no período</div>';
 
-  // Ticket por canal
-  const canalT={};
-  vendGerm.forEach(r=>{
-    const canal=parseCampanha(r['Campanha']);
-    const v=parseFloat((r['Valor Único']||'0').replace(',','.'));
-    if(!isNaN(v)&&v>0){if(!canalT[canal]) canalT[canal]={sum:0,n:0};canalT[canal].sum+=v;canalT[canal].n++;}
+  // Modelo por Canal
+  const canalMod={};
+  ganho.forEach(r=>{
+    const canal=isLoja(r)?'Loja':parseCampanha(r['Campanha']);
+    const modelo=parseProduto(r['Produtos']).modelo||'Outro';
+    if(!canalMod[canal]) canalMod[canal]={Master:0,Mini:0};
+    canalMod[canal][modelo]=(canalMod[canal][modelo]||0)+1;
   });
-  mbar('pr-ticket-canal',Object.entries(canalT).map(([c,d])=>[c,fmtBRL(d.sum/d.n)]).sort((a,b)=>parseInt(b[1].replace(/\D/g,''))-parseInt(a[1].replace(/\D/g,''))),'gold');
+  const mcEl=document.getElementById('pr-modelo-canal');
+  if(mcEl){
+    const entries=Object.entries(canalMod).sort((a,b)=>(b[1].Master+b[1].Mini)-(a[1].Master+a[1].Mini));
+    mcEl.innerHTML=entries.length?entries.map(([c,d])=>{
+      const tot=d.Master+d.Mini||1;
+      const mPct=Math.round(d.Master/tot*100);
+      return `<div class="mc-row">
+        <div class="mc-canal">${c}</div>
+        <div class="mc-seg-wrap"><div class="mc-seg-master" style="width:${mPct}%"></div><div class="mc-seg-mini" style="width:${100-mPct}%"></div></div>
+        <div class="mc-counts"><span class="mc-m">${d.Master}</span><span class="mc-sep">/</span><span class="mc-mn">${d.Mini}</span></div>
+      </div>`;}).join('')
+    :'<div class="empty">Sem dados</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════════

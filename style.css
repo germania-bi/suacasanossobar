@@ -374,6 +374,28 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   color:var(--txt); flex-shrink:0; width:36px; text-align:right;
 }
 
+/* ─── MIX DE PRODUTO ─── */
+.mix-list{ display:flex; flex-direction:column; gap:10px; }
+.mix-item{ display:flex; align-items:center; gap:10px; }
+.mix-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.mix-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--txt-mid); width:90px; flex-shrink:0; }
+.mix-track{ flex:1; height:6px; background:rgba(255,200,120,0.07); border-radius:3px; overflow:hidden; }
+.mix-n{ font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--txt); width:24px; text-align:right; flex-shrink:0; }
+.mix-pct{ font-size:11px; color:var(--txt-mid); width:34px; text-align:right; flex-shrink:0; }
+
+/* ─── MODELO POR CANAL ─── */
+.mc-list{ display:flex; flex-direction:column; gap:2px; }
+.mc-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:0.5px solid rgba(255,200,120,0.06); }
+.mc-row:last-child{ border-bottom:none; }
+.mc-canal{ font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--txt-mid); width:90px; flex-shrink:0; }
+.mc-seg-wrap{ flex:1; height:8px; background:rgba(255,200,120,0.05); border-radius:4px; overflow:hidden; display:flex; }
+.mc-seg-master{ background:#C92B1E; transition:width .6s ease; }
+.mc-seg-mini{ background:#C8941A; transition:width .6s ease; }
+.mc-counts{ display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.mc-m{ font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:800; color:#C92B1E; }
+.mc-mn{ font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:800; color:#C8941A; }
+.mc-sep{ font-size:11px; color:var(--txt-dim); }
+
 /* ─── CICLO DE VENDA ─── */
 .ciclo-hero-row{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
 .ciclo-avg-v{ font-family:'Barlow Condensed',sans-serif; font-size:52px; font-weight:900; color:var(--cream); line-height:1; }
