@@ -473,7 +473,7 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .ao-label h5{ font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--txt); }
 .ao-label p { font-size:var(--fs-body); color:var(--txt-mid); margin-top:1px; }
 .ao-stats{ margin-left:auto; display:flex; align-items:center; gap:0; text-align:center; flex-shrink:0; }
-.ao-stat-col{ padding:0 14px; text-align:center; }
+.ao-stat-col{ padding:0 14px; text-align:center; width:54px; flex-shrink:0; }
 .ao-stat-col+.ao-stat-col{ border-left:1px solid var(--border); }
 .ao-stat-v{ font-family:'Barlow Condensed',sans-serif; font-size:var(--fs-data-md); font-weight:900; line-height:1; }
 .ao-stat-v.dim{ font-weight:400; }
