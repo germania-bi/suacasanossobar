@@ -133,11 +133,11 @@
 <div id="panel-funil" class="tab-panel">
 
   <div class="mkpi-row">
-    <div class="mkpi"><div class="mkpi-v"       id="fn-leads">--</div><div class="mkpi-l">Leads Totais</div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="fn-andamento">--</div><div class="mkpi-l">Em Andamento</div></div>
-    <div class="mkpi"><div class="mkpi-v green" id="fn-ganho">--</div><div class="mkpi-l">Vendas</div></div>
-    <div class="mkpi"><div class="mkpi-v red"   id="fn-perdido">--</div><div class="mkpi-l">Perdas / Desq.</div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="fn-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="fn-leads">--</div><div class="mkpi-l">Leads Totais</div><div class="mkpi-d" id="fn-leads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="fn-andamento">--</div><div class="mkpi-l">Em Andamento</div><div class="mkpi-d" id="fn-andamento-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v green" id="fn-ganho">--</div><div class="mkpi-l">Vendas</div><div class="mkpi-d" id="fn-ganho-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v red"   id="fn-perdido">--</div><div class="mkpi-l">Perdas / Desq.</div><div class="mkpi-d" id="fn-perdido-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"       id="fn-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div><div class="mkpi-d" id="fn-ciclo-d"></div></div>
   </div>
 
   <div class="block">
@@ -155,13 +155,13 @@
       </div>
     </div>
     <div class="block">
-      <div class="bhead" style="border-left-color:var(--s-yellow)"><div class="c-title pill-gold">Aging</div><div class="bsub">deals parados</div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Aging</div><div class="bsub">deals parados > 7d</div></div>
       <div class="bbody"><div class="aging-list" id="aging-list"></div></div>
     </div>
   </div>
 
   <div class="block">
-    <div class="bhead"><div class="c-title pill-red">Motivos de Perda</div><div class="bsub">via EZ</div></div>
+    <div class="bhead"><div class="c-title pill-red">Motivos de Perda</div><div class="bsub">via RD CRM</div></div>
     <div class="bbody"><div class="mbar-list" id="fn-perdas"></div></div>
   </div>
 
@@ -1225,6 +1225,28 @@ function renderFunil(rd,ez){
   document.getElementById('fn-perdido').textContent=perdido.length;
   document.getElementById('fn-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+' dias':'--';
 
+  const prev=getPrevPeriod();
+  const dlbl=getPrevLabel();
+  if(prev){
+    const canal=filtroCanal();
+    const pRd=rawRD.filter(r=>{
+      if(canal==='germania'&&isLoja(r)) return false;
+      if(canal==='loja'&&!isLoja(r)) return false;
+      const d=parseDate(r['Data de criação']);
+      return d&&d>=prev.from&&d<=prev.to;
+    });
+    const pGanho=pRd.filter(r=>estadoNorm(r)==='Ganho');
+    const pPerdido=pRd.filter(r=>estadoNorm(r)==='Perdido');
+    const pAndamento=pRd.filter(r=>estadoNorm(r)==='Em Andamento');
+    const pVendGerm=pGanho.filter(r=>!isLoja(r));
+    const pCiclos=pVendGerm.map(r=>{const dc=parseDate(r['Data de criação']),df=parseDate(r['Data de fechamento']);if(!dc||!df)return null;return Math.max(0,Math.round((df-dc)/864e5));}).filter(v=>v!==null);
+    setDelta('fn-leads-d',    rdC.length,      pRd.length,      false,false,dlbl);
+    setDelta('fn-andamento-d',andamento.length,pAndamento.length,false,false,dlbl);
+    setDelta('fn-ganho-d',    ganho.length,    pGanho.length,   false,false,dlbl);
+    setDelta('fn-perdido-d',  perdido.length,  pPerdido.length, false,false,dlbl);
+    setDelta('fn-ciclo-d',    ciclos.length?Math.round(avg(ciclos)):null,pCiclos.length?Math.round(avg(pCiclos)):null,false,false,dlbl);
+  }
+
   // Funil por etapa
   const etapaMap={};
   rdC.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMap[e]=(etapaMap[e]||0)+1;});
@@ -1267,9 +1289,10 @@ function renderFunil(rd,ez){
     </div>`).join('')
   :'<div class="empty"><div class="ei">✅</div>Nenhum deal parado acima de 7 dias</div>';
 
-  // Motivos de perda via EZ
-  const perdaEZ=ez.filter(r=>{const c=(r['Classificações']||'').toLowerCase();return c.includes('perda')||c.includes('desqualificado');});
-  mbar('fn-perdas',freq(perdaEZ,'Classificações'),'red');
+  // Motivos de perda via RD CRM
+  const motivoFreq=freq(perdido.map(r=>({...r})),'Motivo de Perda')
+    .filter(([v])=>v&&v.trim()&&v.toLowerCase()!=='anotação do motivo de perda');
+  mbar('fn-perdas',motivoFreq,'red');
 }
 
 // ═══════════════════════════════════════════════════════
