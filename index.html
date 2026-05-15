@@ -903,39 +903,53 @@ function renderMapaSP(ganho){
     _mapaLayers=[];
   }
   const sorted=Object.entries(cityData).filter(([c])=>CIDADES_SP[c]).sort((a,b)=>b[1].n-a[1].n);
-  const max=Math.max(...sorted.map(([,d])=>d.n),1);
-  const bounds=[];
-  sorted.forEach(([cidade,d],i)=>{
-    const rank=i+1;
+
+  // Raio comercial — baricentro ponderado + distância média das vendas
+  let wLat=0,wLon=0,wTotal=0;
+  sorted.forEach(([cidade,d])=>{const c=CIDADES_SP[cidade];wLat+=c.lat*d.n;wLon+=c.lon*d.n;wTotal+=d.n;});
+  if(wTotal>0){
+    const cLat=wLat/wTotal,cLon=wLon/wTotal;
+    let avgDist=0;
+    sorted.forEach(([cidade,d])=>{
+      const c=CIDADES_SP[cidade];
+      const dist=Math.sqrt(Math.pow((c.lat-cLat)*111000,2)+Math.pow((c.lon-cLon)*85000,2));
+      avgDist+=dist*d.n;
+    });
+    avgDist=avgDist/wTotal;
+    const reach=L.circle([cLat,cLon],{
+      radius:Math.max(avgDist,25000),
+      fillColor:'#C92B1E',color:'#C92B1E',
+      weight:0.8,fillOpacity:0.05,opacity:0.18,
+      interactive:false,dashArray:'6 4'
+    }).addTo(_mapaLeaflet);
+    _mapaLayers.push(reach);
+  }
+
+  // Pins por cidade
+  sorted.forEach(([cidade,d])=>{
     const coord=CIDADES_SP[cidade];
     const ll=[coord.lat,coord.lon];
-    const rArea=Math.max(14,Math.round(Math.sqrt(d.n/max)*40));
+    const sz=d.n>=5?[28,40]:d.n>=2?[22,32]:[18,26];
     const topMod=Object.entries(d.modelos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
-    const fatStr=d.fat>0?' · R$'+Math.round(d.fat/1000)+'k':'';
-    const rankStr=rank<=3?' <span style="opacity:.7">#'+rank+'</span>':'';
-    const area=L.circleMarker(ll,{
-      radius:rArea,fillColor:'#C92B1E',color:'#C92B1E',
-      weight:0.8,fillOpacity:0.10,opacity:0.30
-    }).bindTooltip(`<strong>${cidade}</strong>${rankStr}<br>${d.n} venda${d.n>1?'s':''}${fatStr}<br><span style="opacity:.7">${topMod}</span>`,{
-      className:'mapa-tooltip',sticky:true,direction:'top',offset:[0,-4]
-    });
-    const dot=L.circleMarker(ll,{
-      radius:6,fillColor:'#E84040',color:'#ff9090',
-      weight:1.5,fillOpacity:0.95,opacity:1,interactive:false
-    });
-    area.addTo(_mapaLeaflet);
-    dot.addTo(_mapaLeaflet);
-    _mapaLayers.push(area,dot);
-    if(rank<=5){
-      const lbl=L.marker(ll,{
-        icon:L.divIcon({className:'mapa-rank-label',html:`<span>#${rank}</span>`,iconSize:[24,18],iconAnchor:[12,26]}),
-        interactive:false,zIndexOffset:500
-      }).addTo(_mapaLeaflet);
-      _mapaLayers.push(lbl);
-    }
-    bounds.push(ll);
+    const fatStr=d.fat>0?'R$ '+Math.round(d.fat/1000)+'k · ':'';
+    const pin=L.marker(ll,{
+      icon:L.divIcon({
+        className:'mapa-pin',
+        html:`<svg width="${sz[0]}" height="${sz[1]}" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.268 21.732 0 14 0z" fill="#E84040" stroke="rgba(255,120,120,0.4)" stroke-width="1"/>
+          <circle cx="14" cy="13" r="5" fill="white" opacity="0.85"/>
+        </svg>`,
+        iconSize:sz,iconAnchor:[sz[0]/2,sz[1]],tooltipAnchor:[0,-sz[1]]
+      })
+    }).bindTooltip(
+      `<strong>${cidade}</strong><br>${d.n} venda${d.n>1?'s':''}<br>${fatStr}${topMod}`,
+      {className:'mapa-tooltip',sticky:false,direction:'top',offset:[0,-4]}
+    ).addTo(_mapaLeaflet);
+    _mapaLayers.push(pin);
   });
-  if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[24,24],maxZoom:9});}catch(e){}
+
+  // Foco no estado de SP
+  try{_mapaLeaflet.setView([-22.5,-48.5],7);}catch(e){}
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
 }
 
