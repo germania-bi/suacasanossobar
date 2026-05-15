@@ -179,8 +179,6 @@
     <div class="mkpi"><div class="mkpi-v"       id="pr-master">--</div><div class="mkpi-l">Kit Master</div><div class="mkpi-d" id="pr-master-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"       id="pr-mini">--</div><div class="mkpi-l">Kit Mini</div><div class="mkpi-d" id="pr-mini-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"       id="pr-winrate">--</div><div class="mkpi-l">Win Rate <span class="tip" data-tip="Vendas ÷ leads com desfecho, excluindo 'Não conseguiu contato'. Mede a eficiência sobre quem entrou de fato no processo comercial.">i</span></div><div class="mkpi-d" id="pr-winrate-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v"       id="pr-ticket-master">--</div><div class="mkpi-l">Ticket Master</div><div class="mkpi-d" id="pr-ticket-master-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v gold"  id="pr-ticket">--</div><div class="mkpi-l">Ticket Médio</div><div class="mkpi-d" id="pr-ticket-d"></div></div>
     <div class="mkpi"><div class="mkpi-v gold"  id="pr-fat">--</div><div class="mkpi-l">Faturado</div><div class="mkpi-d" id="pr-fat-d"></div></div>
   </div>
 
@@ -1394,7 +1392,8 @@ function renderProduto(rd){
   // Modelo por Canal
   const canalMod={};
   ganho.forEach(r=>{
-    const canal=isLoja(r)?'Loja':parseCampanha(r['Campanha']);
+    const raw=isLoja(r)?'Loja':parseCampanha(r['Campanha']);
+    const canal=(raw==='WPP Button'||raw==='Form Direto')?'Campanhas Pagas':raw;
     const modelo=parseProduto(r['Produtos']).modelo||'Outro';
     if(!canalMod[canal]) canalMod[canal]={Master:0,Mini:0};
     canalMod[canal][modelo]=(canalMod[canal][modelo]||0)+1;
