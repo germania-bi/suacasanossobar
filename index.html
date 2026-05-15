@@ -256,7 +256,7 @@
     <div class="block">
       <div class="bhead gold"><div class="c-title pill-gray">TPI por Faixa</div><div class="bsub">impacto na conversão</div></div>
       <div class="bbody">
-        <div class="mbar-list" id="at-tpi-faixas"></div>
+        <div id="at-tpi-faixas"></div>
         <div class="divider"></div>
         <div style="font-size:11px;color:var(--txt-faint);line-height:1.6" id="at-tpi-insight"></div>
       </div>
@@ -1590,21 +1590,32 @@ function renderAtendimento(ez,rd){
   }
 
   // TPI por faixa x conversão
-  const faixasTPI={'Ate 5min':{n:0,v:0},'5-15min':{n:0,v:0},'15-30min':{n:0,v:0},'30-60min':{n:0,v:0},'60+min':{n:0,v:0}};
+  const faixasTPI={'Até 5min':{n:0,v:0},'5–15min':{n:0,v:0},'15–30min':{n:0,v:0},'30–60min':{n:0,v:0},'60+ min':{n:0,v:0}};
   ez.forEach(r=>{
     const tpi=parseMin(r['Tempo para Primeira Interação']||r['TPI']);
     if(tpi===null) return;
     const p=normPhone(r['Telefone']);
     const vendeu=p&&ganhoPhones.has(p);
-    const faixa=tpi<=5?'Ate 5min':tpi<=15?'5-15min':tpi<=30?'15-30min':tpi<=60?'30-60min':'60+min';
+    const faixa=tpi<=5?'Até 5min':tpi<=15?'5–15min':tpi<=30?'15–30min':tpi<=60?'30–60min':'60+ min';
     faixasTPI[faixa].n++;
     if(vendeu) faixasTPI[faixa].v++;
   });
-  const tpiFx=Object.entries(faixasTPI).filter(([,d])=>d.n>0).map(([f,d])=>[f+' ('+d.n+')',Math.round(d.v/d.n*100)+'%']);
-  mbar('at-tpi-faixas',tpiFx,'gold');
-  const best=tpiFx.reduce((b,c)=>(!b||parseInt(c[1])>parseInt(b[1]))?c:b,null);
+  const tpiRows=Object.entries(faixasTPI).filter(([,d])=>d.n>0).map(([f,d])=>({f,n:d.n,pct:Math.round(d.v/d.n*100)}));
+  const maxPct=tpiRows.reduce((m,r)=>Math.max(m,r.pct),0)||1;
+  const tpiFxEl=document.getElementById('at-tpi-faixas');
+  if(tpiFxEl) tpiFxEl.innerHTML=tpiRows.map(r=>`<div class="tpi-row">
+    <div class="tpi-label">${r.f}</div>
+    <div class="tpi-n">${r.n} atend.</div>
+    <div class="tpi-bar-wrap"><div class="tpi-bar-fill" style="width:${Math.round(r.pct/maxPct*100)}%"></div></div>
+    <div class="tpi-pct">${r.pct}%</div>
+  </div>`).join('');
+  const best=tpiRows.reduce((b,r)=>(!b||r.pct>b.pct)?r:b,null);
+  const worst=tpiRows.reduce((b,r)=>(!b||r.pct<b.pct)?r:b,null);
   const ins=document.getElementById('at-tpi-insight');
-  if(ins&&best) ins.textContent='Melhor conversão: leads respondidos '+best[0].split('(')[0].trim()+' converteram '+best[1]+' das vezes.';
+  if(ins&&best){
+    const ratio=(worst&&worst.pct>0&&best.f!==worst.f)?Math.round(best.pct/worst.pct):null;
+    ins.textContent=ratio&&ratio>1?`Responder em ${best.f} converte ${ratio}× mais que ${worst.f}.`:`Melhor faixa: ${best.f} com ${best.pct}% de conversão.`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════
