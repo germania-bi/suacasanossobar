@@ -304,14 +304,15 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:var(--fs-label); color:var(--txt-mid);
   text-transform:uppercase; letter-spacing:.09em; margin-top:3px;
 }
-.mkpi-d{
-  font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:600;
-  letter-spacing:.04em; color:#9A9A9A; display:block; margin-top:3px; white-space:nowrap;
+.mkpi-d{ display:flex; align-items:center; gap:5px; margin-top:4px; white-space:nowrap; }
+.mkpi-d-val{
+  font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700;
+  letter-spacing:.04em; color:#9A9A9A;
 }
-.mkpi-d.up  { color:#4EAD72; }
-.mkpi-d.dn  { color:#E05C50; }
-.mkpi-d.neu { color:#9A9A9A; }
-.mkpi-d-lbl { color:var(--txt-faint); font-weight:400; }
+.mkpi-d-val.up  { color:#4EAD72; }
+.mkpi-d-val.dn  { color:#E05C50; }
+.mkpi-d-val.neu { color:#9A9A9A; }
+.mkpi-d-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--txt-faint); font-weight:400; }
 
 /* ─── CHART BOX ─── */
 .chart-box{
