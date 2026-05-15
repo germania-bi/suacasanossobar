@@ -1052,29 +1052,23 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Win rate por etapa — rawRD filtrado só por canal (sem filtro de data)
+  // Pipeline atual — deals Em Andamento por etapa, rawRD canal-only (sem filtro de data)
   const canal=filtroCanal();
   const rdAll=rawRD.filter(r=>!(canal==='germania'&&isLoja(r))&&!(canal==='loja'&&!isLoja(r)));
+  const ativosAll=rdAll.filter(r=>estadoNorm(r)==='Em Andamento');
+  const etapaCountVG={};
+  ativosAll.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaCountVG[e]=(etapaCountVG[e]||0)+1;});
+  const maxCount=Math.max(...ETAPAS_ORDER.map(e=>etapaCountVG[e]||0),1);
   const pipeEl=document.getElementById('vg-pipeline');
   const subPipe=document.getElementById('vg-pipeline-sub');
-  if(subPipe) subPipe.textContent='win rate por etapa';
-  if(pipeEl) pipeEl.innerHTML=ETAPAS_ORDER.map((etapa,i)=>{
-    const reached=rdAll.filter(r=>{
-      if(estadoNorm(r)==='Ganho') return true;
-      const idx=ETAPAS_ORDER.indexOf((r['Etapa']||'').trim());
-      return idx>=i;
-    }).length;
-    const won=rdAll.filter(r=>{
-      if(estadoNorm(r)!=='Ganho') return false;
-      const idx=ETAPAS_ORDER.indexOf((r['Etapa']||'').trim());
-      return idx>=i||idx===-1;
-    }).length;
-    const pct=reached>0?Math.round(won/reached*100):0;
+  if(subPipe) subPipe.textContent=ativosAll.length+' em aberto';
+  if(pipeEl) pipeEl.innerHTML=ETAPAS_ORDER.map(etapa=>{
+    const n=etapaCountVG[etapa]||0;
     const label=etapa.replace('Atendimento / Demonstração','Atendimento / Demo');
     return `<div class="funil-item">
       <div class="funil-etapa" title="${etapa}">${label}</div>
-      <div class="funil-track"><div class="funil-fill" style="width:${pct}%"></div></div>
-      <div class="funil-count">${pct}%</div>
+      <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/maxCount*100)}%"></div></div>
+      <div class="funil-count">${n}</div>
     </div>`;
   }).join('');
 
