@@ -460,6 +460,12 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:20px; width:36px; height:36px; border-radius:5px;
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
+.ao-ico-mono{
+  width:34px; height:34px; border-radius:5px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,0.04); border:0.8px solid var(--border);
+  color:var(--txt-mid);
+}
 .ao-row.ads  .ao-ico{ background:var(--gold-dim); border:0.8px solid var(--gold-bd); }
 .ao-row.org  .ao-ico{ background:var(--green-dim); border:0.8px solid var(--green-bd); }
 .ao-row.loja .ao-ico{ background:var(--blue-dim); border:0.8px solid var(--blue-bd); }
