@@ -901,16 +901,24 @@ function renderMapaSP(ganho){
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([cidade,n])=>{
     const coord=CIDADES_SP[cidade];
     if(!coord) return;
-    const r=Math.max(8,Math.round(Math.sqrt(n/max)*32));
-    const m=L.circleMarker([coord.lat,coord.lon],{
-      radius:r, fillColor:'#C92B1E', color:'#ff6b5b',
-      weight:1.5, fillOpacity:0.65, opacity:0.9
+    const ll=[coord.lat,coord.lon];
+    // Círculo de área de atuação (proporcional às vendas, translúcido)
+    const rArea=Math.max(14,Math.round(Math.sqrt(n/max)*40));
+    const area=L.circleMarker(ll,{
+      radius:rArea, fillColor:'#C92B1E', color:'#C92B1E',
+      weight:0.8, fillOpacity:0.10, opacity:0.30
     }).bindTooltip(`<strong>${cidade}</strong>: ${n} venda${n>1?'s':''}`,{
       className:'mapa-tooltip',sticky:true,direction:'top',offset:[0,-4]
     });
-    m.addTo(_mapaLeaflet);
-    _mapaLayers.push(m);
-    bounds.push([coord.lat,coord.lon]);
+    // Ponto de venda (fixo, sólido)
+    const dot=L.circleMarker(ll,{
+      radius:6, fillColor:'#E84040', color:'#ff9090',
+      weight:1.5, fillOpacity:0.95, opacity:1, interactive:false
+    });
+    area.addTo(_mapaLeaflet);
+    dot.addTo(_mapaLeaflet);
+    _mapaLayers.push(area,dot);
+    bounds.push(ll);
   });
   if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[24,24],maxZoom:9});}catch(e){}
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
