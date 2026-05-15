@@ -238,7 +238,7 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 /* ─── GRIDS ─── */
 .g2 { display:grid; grid-template-columns:1fr 1fr;     gap:12px; align-items:stretch; }
 .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; align-items:stretch; }
-.g21{ display:grid; grid-template-columns:2fr 1fr;     gap:12px; align-items:stretch; }
+.g21{ display:grid; grid-template-columns:1fr 1fr;     gap:12px; align-items:stretch; }
 .g12{ display:grid; grid-template-columns:1fr 2fr;     gap:12px; align-items:stretch; }
 .mb { margin-bottom:14px; }
 
