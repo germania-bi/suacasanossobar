@@ -156,7 +156,7 @@ body{
 }
 .fp-icon{
   color:var(--txt-faint); padding:0 10px 0 0; flex-shrink:0;
-  display:flex; align-items:center; transition:color .15s; pointer-events:none;
+  display:flex; align-items:center; transition:color .15s; cursor:pointer;
 }
 .date-sep{ color:var(--txt-faint); font-size:11px; padding:0 4px; flex-shrink:0; }
 
@@ -169,7 +169,7 @@ body{
 .flatpickr-months .flatpickr-month,
 .flatpickr-weekdays,
 span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!important; }
-.flatpickr-current-month{ color:var(--cream)!important; font-size:13px!important; }
+.flatpickr-current-month{ color:var(--cream)!important; font-size:17px!important; }
 .flatpickr-current-month .numInputWrapper input,
 .flatpickr-current-month select{ color:var(--cream)!important; }
 .flatpickr-prev-month svg,.flatpickr-next-month svg{ fill:var(--txt-mid)!important; }
