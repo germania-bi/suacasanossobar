@@ -114,8 +114,8 @@
       <canvas id="ch-leads-dia" style="min-height:200px"></canvas>
     </div>
     <div class="chart-box">
-      <div class="ctitle">Resultado dos Atendimentos</div>
-      <canvas id="ch-class-visao"></canvas>
+      <div class="ctitle">Pipeline Atual<span class="ctitle-sub" id="vg-pipeline-sub"></span></div>
+      <div id="vg-pipeline" class="funil-list"></div>
     </div>
   </div>
 
@@ -922,6 +922,8 @@ function renderMapaSP(ganho){
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
 }
 
+const ETAPAS_ORDER=['Atendimento / Demonstração','Apresentação','Negociação','Proposta','Cadastro no Sistema','Preparação da Chopeira'];
+
 // ═══════════════════════════════════════════════════════
 // RENDER — HEADER
 // ═══════════════════════════════════════════════════════
@@ -1050,9 +1052,28 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Classificações EZ
-  const classEZ=freq(ez,'Classificações');
-  if(classEZ.length) donut('ch-class-visao',classEZ.map(e=>e[0]),classEZ.map(e=>e[1]));
+  // Mini funil — deals Em Andamento por etapa
+  const emAndamento=rd.filter(r=>estadoNorm(r)==='Em Andamento');
+  const etapaMapVG={};
+  emAndamento.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMapVG[e]=(etapaMapVG[e]||0)+1;});
+  const etapasVG=Object.entries(etapaMapVG).sort((a,b)=>{
+    const ia=ETAPAS_ORDER.indexOf(a[0]),ib=ETAPAS_ORDER.indexOf(b[0]);
+    if(ia>=0&&ib>=0) return ia-ib;
+    if(ia>=0) return -1;if(ib>=0) return 1;
+    return b[1]-a[1];
+  });
+  const totalPipe=Math.max(...etapasVG.map(e=>e[1]),1);
+  const pipeEl=document.getElementById('vg-pipeline');
+  const subPipe=document.getElementById('vg-pipeline-sub');
+  if(subPipe) subPipe.textContent=emAndamento.length+' em aberto';
+  if(pipeEl) pipeEl.innerHTML=etapasVG.length
+    ?etapasVG.map(([e,n])=>`
+      <div class="funil-item">
+        <div class="funil-etapa" title="${e}">${e}</div>
+        <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/totalPipe*100)}%"></div></div>
+        <div class="funil-count">${n}</div>
+      </div>`).join('')
+    :'<div class="empty"><div class="ei">📊</div>Sem deals em aberto</div>';
 
   // Canal Germânia breakdown
   const canais=[
@@ -1108,11 +1129,10 @@ function renderFunil(rd,ez){
   document.getElementById('fn-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+' dias':'--';
 
   // Funil por etapa
-  const etapasOrder=['Atendimento / Demonstração','Apresentação','Negociação','Proposta','Cadastro no Sistema','Preparação da Chopeira'];
   const etapaMap={};
   rdC.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMap[e]=(etapaMap[e]||0)+1;});
   const etapas=Object.entries(etapaMap).sort((a,b)=>{
-    const ia=etapasOrder.indexOf(a[0]),ib=etapasOrder.indexOf(b[0]);
+    const ia=ETAPAS_ORDER.indexOf(a[0]),ib=ETAPAS_ORDER.indexOf(b[0]);
     if(ia>=0&&ib>=0) return ia-ib;
     if(ia>=0) return -1;if(ib>=0) return 1;
     return b[1]-a[1];
