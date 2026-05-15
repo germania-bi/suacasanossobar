@@ -1052,16 +1052,14 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Pipeline atual — deals Em Andamento por etapa, rawRD canal-only (sem filtro de data)
-  const canal=filtroCanal();
-  const rdAll=rawRD.filter(r=>!(canal==='germania'&&isLoja(r))&&!(canal==='loja'&&!isLoja(r)));
-  const ativosAll=rdAll.filter(r=>estadoNorm(r)==='Em Andamento');
+  // Pipeline atual — deals Em Andamento por etapa, mesmo filtro do dashboard
+  const ativosVG=rd.filter(r=>estadoNorm(r)==='Em Andamento');
   const etapaCountVG={};
-  ativosAll.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaCountVG[e]=(etapaCountVG[e]||0)+1;});
+  ativosVG.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaCountVG[e]=(etapaCountVG[e]||0)+1;});
   const maxCount=Math.max(...ETAPAS_ORDER.map(e=>etapaCountVG[e]||0),1);
   const pipeEl=document.getElementById('vg-pipeline');
   const subPipe=document.getElementById('vg-pipeline-sub');
-  if(subPipe) subPipe.textContent=ativosAll.length+' em aberto';
+  if(subPipe) subPipe.textContent=ativosVG.length+' em aberto';
   if(pipeEl) pipeEl.innerHTML=ETAPAS_ORDER.map(etapa=>{
     const n=etapaCountVG[etapa]||0;
     const label=etapa.replace('Atendimento / Demonstração','Atendimento / Demo');
