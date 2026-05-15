@@ -873,7 +873,7 @@ function renderMapaSP(ganho){
     const canon=resolveCity(raw)||raw;
     if(!cityData[canon]) cityData[canon]={n:0,fat:0,modelos:{}};
     cityData[canon].n++;
-    const v=parseFloat((r['Valor Único']||'0').replace(/\./g,'').replace(',','.'))||0;
+    const v=parseFloat((r['Valor Único']||'0').replace(',','.'))||0;
     cityData[canon].fat+=v;
     const prod=r['Produtos']||'';
     const mod=prod.includes('Master')?'Master':prod.includes('Mini')?'Mini':'—';
@@ -918,26 +918,30 @@ function renderMapaSP(ganho){
     avgDist=avgDist/wTotal;
     const reach=L.circle([cLat,cLon],{
       radius:Math.max(avgDist,25000),
-      fillColor:'#C92B1E',color:'#C92B1E',
-      weight:0.8,fillOpacity:0.05,opacity:0.18,
-      interactive:false,dashArray:'6 4'
-    }).addTo(_mapaLeaflet);
+      fillColor:'#C8941A',color:'#C8941A',
+      weight:1,fillOpacity:0.04,opacity:0.30,
+      dashArray:'7 5'
+    }).bindTooltip(
+      'Raio de atuação comercial<br><span style="opacity:.7;font-weight:400">Concentração geográfica das vendas<br>no período — quanto menor, mais focado</span>',
+      {className:'mapa-tooltip',sticky:true,direction:'top'}
+    ).addTo(_mapaLeaflet);
     _mapaLayers.push(reach);
   }
 
   // Pins por cidade
+  const bounds=[];
   sorted.forEach(([cidade,d])=>{
     const coord=CIDADES_SP[cidade];
     const ll=[coord.lat,coord.lon];
     const sz=d.n>=5?[28,40]:d.n>=2?[22,32]:[18,26];
     const topMod=Object.entries(d.modelos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
-    const fatStr=d.fat>0?'R$ '+Math.round(d.fat/1000)+'k · ':'';
+    const fatStr=d.fat>0?'R$ '+fmtBRLk(d.fat)+' · ':'';
     const pin=L.marker(ll,{
       icon:L.divIcon({
         className:'mapa-pin',
         html:`<svg width="${sz[0]}" height="${sz[1]}" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.268 21.732 0 14 0z" fill="#E84040" stroke="rgba(255,120,120,0.4)" stroke-width="1"/>
-          <circle cx="14" cy="13" r="5" fill="white" opacity="0.85"/>
+          <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.268 21.732 0 14 0z" fill="#C8941A" stroke="rgba(220,160,40,0.5)" stroke-width="1"/>
+          <circle cx="14" cy="13" r="5" fill="rgba(255,255,255,0.90)"/>
         </svg>`,
         iconSize:sz,iconAnchor:[sz[0]/2,sz[1]],tooltipAnchor:[0,-sz[1]]
       })
@@ -946,10 +950,10 @@ function renderMapaSP(ganho){
       {className:'mapa-tooltip',sticky:false,direction:'top',offset:[0,-4]}
     ).addTo(_mapaLeaflet);
     _mapaLayers.push(pin);
+    bounds.push(ll);
   });
 
-  // Foco no estado de SP
-  try{_mapaLeaflet.setView([-22.5,-48.5],7);}catch(e){}
+  if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[32,32],maxZoom:9});}catch(e){}
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
 }
 
