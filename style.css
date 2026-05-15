@@ -637,3 +637,15 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 }
 .mapa-tooltip::before{ display:none; }
 .mapa-pin{ background:transparent !important; border:none !important; }
+.mapa-rank-ctrl{
+  background:rgba(26,18,8,0.88); border:0.8px solid rgba(255,200,120,0.18);
+  border-radius:6px; padding:8px 12px; min-width:160px;
+  font-family:'Barlow',sans-serif; pointer-events:none;
+}
+.mrc-row{ display:flex; align-items:center; gap:8px; padding:3px 0; border-bottom:0.8px solid rgba(255,200,120,0.07); }
+.mrc-row:last-of-type{ border-bottom:none; }
+.mrc-pos{ font-family:'Barlow Condensed',sans-serif; font-size:10px; color:rgba(255,200,120,0.45); font-weight:700; width:20px; flex-shrink:0; }
+.mrc-city{ font-size:12px; color:#F1E3CE; font-weight:500; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mrc-n{ font-family:'Barlow Condensed',sans-serif; font-size:15px; color:#C8941A; font-weight:900; flex-shrink:0; }
+.mrc-legend{ display:flex; align-items:center; gap:4px; margin-top:7px; font-size:10px; color:rgba(241,227,206,0.40); letter-spacing:.04em; }
+.mrc-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; flex-shrink:0; }

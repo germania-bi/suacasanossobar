@@ -860,7 +860,7 @@ function resolveCity(raw){
   return norm?norm.cidade:null;
 }
 
-let _mapaLeaflet=null, _mapaLayers=[];
+let _mapaLeaflet=null, _mapaLayers=[], _mapaControl=null;
 
 function renderMapaSP(ganho){
   const el=document.getElementById('vg-cidades-map');
@@ -881,6 +881,7 @@ function renderMapaSP(ganho){
   });
   if(!Object.keys(cityData).length){
     if(_mapaLeaflet){_mapaLeaflet.remove();_mapaLeaflet=null;_mapaLayers=[];}
+    if(_mapaControl){try{_mapaControl.remove();}catch(e){}_mapaControl=null;}
     el.innerHTML='<div class="empty" style="height:100%;min-height:120px;justify-content:center"><div class="ei">📍</div>Sem cidades no período</div>';
     const sub=document.getElementById('vg-mapa-sub');if(sub) sub.textContent='';
     return;
@@ -902,6 +903,7 @@ function renderMapaSP(ganho){
     _mapaLayers.forEach(l=>l.remove());
     _mapaLayers=[];
   }
+  if(_mapaControl){try{_mapaControl.remove();}catch(e){}_mapaControl=null;}
   const sorted=Object.entries(cityData).filter(([c])=>CIDADES_SP[c]).sort((a,b)=>b[1].n-a[1].n);
 
   // Raio comercial — baricentro ponderado + distância média das vendas
@@ -928,19 +930,22 @@ function renderMapaSP(ganho){
     _mapaLayers.push(reach);
   }
 
-  // Pins por cidade
+  // Pins por cidade — cor por modelo dominante
   const bounds=[];
   sorted.forEach(([cidade,d])=>{
     const coord=CIDADES_SP[cidade];
     const ll=[coord.lat,coord.lon];
     const sz=d.n>=5?[28,40]:d.n>=2?[22,32]:[18,26];
     const topMod=Object.entries(d.modelos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
-    const fatStr=d.fat>0?'R$ '+fmtBRLk(d.fat)+' · ':'';
+    const isMini=topMod==='Mini';
+    const fill=isMini?'#C8941A':'#C92B1E';
+    const strk=isMini?'rgba(220,160,40,0.5)':'rgba(255,100,100,0.4)';
+    const fatStr=d.fat>0?fmtBRLk(d.fat)+' · ':'';
     const pin=L.marker(ll,{
       icon:L.divIcon({
         className:'mapa-pin',
         html:`<svg width="${sz[0]}" height="${sz[1]}" viewBox="0 0 28 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.268 21.732 0 14 0z" fill="#C8941A" stroke="rgba(220,160,40,0.5)" stroke-width="1"/>
+          <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.268 21.732 0 14 0z" fill="${fill}" stroke="${strk}" stroke-width="1"/>
           <circle cx="14" cy="13" r="5" fill="rgba(255,255,255,0.90)"/>
         </svg>`,
         iconSize:sz,iconAnchor:[sz[0]/2,sz[1]],tooltipAnchor:[0,-sz[1]]
@@ -952,6 +957,28 @@ function renderMapaSP(ganho){
     _mapaLayers.push(pin);
     bounds.push(ll);
   });
+
+  // Ranking — top 5 cidades
+  const top5=sorted.slice(0,5);
+  const RankCtrl=L.Control.extend({
+    options:{position:'bottomleft'},
+    onAdd(){
+      const div=L.DomUtil.create('div','mapa-rank-ctrl');
+      L.DomEvent.disableClickPropagation(div);
+      div.innerHTML=
+        top5.map(([c,d],i)=>`<div class="mrc-row">
+          <span class="mrc-pos">#${i+1}</span>
+          <span class="mrc-city">${c}</span>
+          <span class="mrc-n">${d.n}</span>
+        </div>`).join('')+
+        '<div class="mrc-legend">'+
+          '<span class="mrc-dot" style="background:#C92B1E"></span>Master'+
+          ' &nbsp;<span class="mrc-dot" style="background:#C8941A"></span>Mini'+
+        '</div>';
+      return div;
+    }
+  });
+  _mapaControl=new RankCtrl().addTo(_mapaLeaflet);
 
   if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[32,32],maxZoom:9});}catch(e){}
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
