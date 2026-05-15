@@ -221,8 +221,8 @@
   </div>
 
   <div class="chart-box">
-    <div class="ctitle"><span class="c-title pill-gray">Volume Diário de Atendimentos</span></div>
-    <canvas id="ch-atend-dia" style="max-height:140px"></canvas>
+    <div class="ctitle"><span class="c-title pill-gray">Volume Diário de Atendimentos</span><span class="ctitle-sub" id="at-dia-sub"></span></div>
+    <canvas id="ch-atend-dia" style="min-height:170px"></canvas>
   </div>
 
   <div class="g2">
@@ -1478,14 +1478,65 @@ function renderAtendimento(ez,rd){
     setDelta('at-icliente-d',iC.length?Math.round(avg(iC)*10)/10:null,pIC.length?Math.round(avg(pIC)*10)/10:null,false,false,dlbl);
   }
 
-  // Volume diário
+  // Volume diário — com linha comparativa
   const diasMap={};
   ez.forEach(r=>{const d=parseDate(r['Criado em']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
   const dk=Object.keys(diasMap).sort();
-  lineChart('ch-atend-dia',dk.map(k=>k.slice(5)),[{
-    label:'Atendimentos',data:dk.map(k=>diasMap[k]),
-    borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.12)',tension:0.3,pointRadius:2,fill:true
-  }]);
+  const vals=dk.map(k=>diasMap[k]);
+  const maxVal=Math.max(...vals,0);
+  const maxIdx=vals.indexOf(maxVal);
+  const radii=vals.map((_,i)=>i===maxIdx&&maxVal>0?7:4);
+  const atDatasets=[{
+    label:'Período atual',data:vals,
+    borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.13)',
+    tension:0.4,pointRadius:radii,pointHoverRadius:8,
+    pointBackgroundColor:'transparent',pointBorderColor:'#5B7FA6',pointBorderWidth:2,
+    fill:true
+  }];
+  const subElAt=document.getElementById('at-dia-sub');
+  if(prev&&dlbl){
+    const diasPrev={};
+    dedupEZ(rawEZ).filter(r=>{const d=parseDate(r['Criado em']);return d&&d>=prev.from&&d<=prev.to;})
+      .forEach(r=>{const d=parseDate(r['Criado em']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
+    const anchor=new Date(dk[0]||fmt(dateFrom||new Date()));
+    const prevVals=dk.map(k=>{
+      const offset=Math.round((new Date(k)-anchor)/864e5);
+      const prevKey=fmt(new Date(+prev.from+offset*864e5));
+      return diasPrev[prevKey]??0;
+    });
+    if(Object.keys(diasPrev).length>0){
+      atDatasets.push({
+        label:dlbl,data:prevVals,
+        borderColor:'rgba(200,148,26,0.70)',backgroundColor:'transparent',
+        borderDash:[4,3],tension:0.4,
+        pointRadius:3,pointHoverRadius:6,
+        pointBackgroundColor:'transparent',pointBorderColor:'rgba(200,148,26,0.85)',pointBorderWidth:1.5,
+        fill:false
+      });
+      if(subElAt) subElAt.innerHTML=
+        `<span class="leg-item"><span class="leg-line-s"></span>Atual</span>`+
+        `<span class="leg-item"><span class="leg-line-d"></span>${dlbl}</span>`;
+    } else { if(subElAt) subElAt.innerHTML=''; }
+  } else { if(subElAt) subElAt.innerHTML=''; }
+  dc('ch-atend-dia');
+  const ctxAt=document.getElementById('ch-atend-dia');
+  if(ctxAt) charts['ch-atend-dia']=new Chart(ctxAt,{
+    type:'line',data:{labels:dk.map(k=>k.slice(5)),datasets:atDatasets},
+    options:{
+      responsive:true,maintainAspectRatio:true,aspectRatio:2.0,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:items=>{const k=dk[items[0].dataIndex];return k?k.split('-').slice(1).join('/')+'/'+k.slice(0,4):'';},
+          label:items=>`${items.dataset.label}: ${items.raw??'—'} atendimentos`
+        }}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},maxRotation:45,maxTicksLimit:15}},
+        y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9}},beginAtZero:true}
+      }
+    }
+  });
 
   // Classificações
   mbar('at-classificacoes',freq(ez,'Classificações'),'red');
