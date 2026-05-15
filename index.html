@@ -114,8 +114,8 @@
       <canvas id="ch-leads-dia" style="min-height:200px"></canvas>
     </div>
     <div class="chart-box">
-      <div class="ctitle">Pipeline Atual<span class="ctitle-sub" id="vg-pipeline-sub"></span></div>
-      <div id="vg-pipeline" class="funil-list"></div>
+      <div class="ctitle">Evolução de Vendas<span class="ctitle-sub" id="vg-vendas-sub"></span></div>
+      <canvas id="ch-vendas-evo" style="min-height:200px"></canvas>
     </div>
   </div>
 
@@ -1052,23 +1052,58 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Pipeline atual — deals Em Andamento por etapa, mesmo filtro do dashboard
-  const ativosVG=rd.filter(r=>estadoNorm(r)==='Em Andamento');
-  const etapaCountVG={};
-  ativosVG.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaCountVG[e]=(etapaCountVG[e]||0)+1;});
-  const maxCount=Math.max(...ETAPAS_ORDER.map(e=>etapaCountVG[e]||0),1);
-  const pipeEl=document.getElementById('vg-pipeline');
-  const subPipe=document.getElementById('vg-pipeline-sub');
-  if(subPipe) subPipe.textContent=ativosVG.length+' em aberto';
-  if(pipeEl) pipeEl.innerHTML=ETAPAS_ORDER.map(etapa=>{
-    const n=etapaCountVG[etapa]||0;
-    const label=etapa.replace('Atendimento / Demonstração','Atendimento / Demo');
-    return `<div class="funil-item">
-      <div class="funil-etapa" title="${etapa}">${label}</div>
-      <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/maxCount*100)}%"></div></div>
-      <div class="funil-count">${n}</div>
-    </div>`;
-  }).join('');
+  // Evolução de Vendas — barras empilhadas Germânia/Loja + linha faturamento
+  {
+    const ganhos=rd.filter(r=>estadoNorm(r)==='Ganho'&&parseDate(r['Data de fechamento']));
+    const span=dateFrom&&dateTo?(dateTo-dateFrom)/864e5:30;
+    const useSemana=span>30;
+    const keyOf=d=>{
+      if(useSemana){
+        const s=new Date(d);s.setDate(s.getDate()-s.getDay());
+        return s.toISOString().slice(0,10);
+      }
+      return d.toISOString().slice(0,10);
+    };
+    const labelOf=k=>useSemana?'sem '+k.slice(5,10):k.slice(5,10);
+    const buckets={};
+    ganhos.forEach(r=>{
+      const d=parseDate(r['Data de fechamento']);
+      const k=keyOf(d);
+      if(!buckets[k]) buckets[k]={germ:0,loja:0,fat:0};
+      const v=parseFloat((r['Valor Único']||'0').replace(/\./g,'').replace(',','.'))||0;
+      if(isLoja(r)){buckets[k].loja++;buckets[k].fat+=v;}
+      else{buckets[k].germ++;buckets[k].fat+=v;}
+    });
+    const keys=Object.keys(buckets).sort();
+    const labels=keys.map(labelOf);
+    const germData=keys.map(k=>buckets[k].germ);
+    const lojaData=keys.map(k=>buckets[k].loja);
+    const fatData=keys.map(k=>Math.round(buckets[k].fat));
+    const subEl=document.getElementById('vg-vendas-sub');
+    if(subEl) subEl.textContent=ganhos.length+' venda'+(ganhos.length!==1?'s':'')+' no período';
+    mk('ch-vendas-evo',{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Germânia',data:germData,backgroundColor:'rgba(201,43,30,0.80)',stack:'v',order:2},
+        {label:'Loja',data:lojaData,backgroundColor:'rgba(200,148,26,0.70)',stack:'v',order:2},
+        {label:'Faturado R$',data:fatData,type:'line',borderColor:'rgba(255,255,255,0.35)',backgroundColor:'transparent',
+         borderWidth:1.5,borderDash:[3,3],pointRadius:3,pointBackgroundColor:'transparent',
+         pointBorderColor:'rgba(255,255,255,0.50)',pointBorderWidth:1.5,tension:0.3,yAxisID:'yf',order:1},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{labels:{color:'#A89870',font:{size:9},boxWidth:8,padding:10}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='yf'?'R$ '+ctx.parsed.y.toLocaleString('pt-BR'):ctx.dataset.label+': '+ctx.parsed.y}}
+        },
+        scales:{
+          x:{stacked:true,grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}}},
+          y:{stacked:true,grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},stepSize:1},beginAtZero:true,position:'left'},
+          yf:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.30)',font:{size:8},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},beginAtZero:true,position:'right'},
+        }
+      }
+    });
+  }
 
   // Canal Germânia breakdown
   const canais=[
