@@ -1081,7 +1081,9 @@ function renderVisaoGeral(rd,ez,ads){
     const fatData=keys.map(k=>Math.round(buckets[k].fat));
     const subEl=document.getElementById('vg-vendas-sub');
     if(subEl) subEl.textContent=ganhos.length+' venda'+(ganhos.length!==1?'s':'')+' no período';
-    mk('ch-vendas-evo',{
+    dc('ch-vendas-evo');
+    const ctxVE=document.getElementById('ch-vendas-evo');
+    if(ctxVE) charts['ch-vendas-evo']=new Chart(ctxVE,{
       type:'bar',
       data:{labels,datasets:[
         {label:'Germânia',data:germData,backgroundColor:'rgba(201,43,30,0.80)',stack:'v',order:2},
@@ -1091,7 +1093,7 @@ function renderVisaoGeral(rd,ez,ads){
          pointBorderColor:'rgba(255,255,255,0.50)',pointBorderWidth:1.5,tension:0.3,yAxisID:'yf',order:1},
       ]},
       options:{
-        responsive:true,maintainAspectRatio:false,
+        responsive:true,maintainAspectRatio:true,aspectRatio:2.2,
         plugins:{
           legend:{labels:{color:'#A89870',font:{size:9},boxWidth:8,padding:10}},
           tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='yf'?'R$ '+ctx.parsed.y.toLocaleString('pt-BR'):ctx.dataset.label+': '+ctx.parsed.y}}
