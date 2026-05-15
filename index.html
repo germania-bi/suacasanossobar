@@ -1174,11 +1174,23 @@ function renderVisaoGeral(rd,ez,ads){
 
   // Vendas por Parceiro (Loja)
   const loja=ganho.filter(r=>isLoja(r));
-  const parceiros=freq(loja,'Vendedor Responsável').slice(0,12);
+  const parcMap={};
+  loja.forEach(r=>{
+    const v=(r['Vendedor Responsável']||'').trim();
+    const u=(r['Unidades de atendimento']||'').trim();
+    if(!v) return;
+    if(!parcMap[v]) parcMap[v]={n:0,unidade:u};
+    parcMap[v].n++;
+    if(!parcMap[v].unidade&&u) parcMap[v].unidade=u;
+  });
+  const parceiros=Object.entries(parcMap).sort((a,b)=>b[1].n-a[1].n).slice(0,12);
   const parEl=document.getElementById('icp-parceiros');
-  if(parEl) parEl.innerHTML=parceiros.length?parceiros.map(([n,v])=>`
+  if(parEl) parEl.innerHTML=parceiros.length?parceiros.map(([n,{n:v,unidade}])=>`
     <div class="parc-item">
-      <div class="parc-name" title="${n}">${n}</div>
+      <div class="parc-info">
+        <div class="parc-name" title="${n}">${n}</div>
+        ${unidade?`<div class="parc-unit">${unidade}</div>`:''}
+      </div>
       <div class="parc-badge">${v}</div>
     </div>`).join('')
   :'<div class="empty">Sem vendas de loja no período</div>';

@@ -289,7 +289,9 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 /* ─── VENDAS POR PARCEIRO ─── */
 .parc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; }
 .parc-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:rgba(255,255,255,0.03); border:0.8px solid var(--border); border-radius:6px; padding:8px 12px; }
-.parc-name{ font-size:13px; color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.parc-info{ min-width:0; flex:1; }
+.parc-name{ font-size:13px; color:var(--txt-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.parc-unit{ font-size:11px; color:var(--txt-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; text-transform:uppercase; letter-spacing:.06em; }
 .parc-badge{ font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:800; color:var(--blue); flex-shrink:0; }
 .bbody{ padding:16px 18px; }
 
