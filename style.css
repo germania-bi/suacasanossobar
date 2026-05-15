@@ -329,7 +329,11 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .ctitle-sub{
   font-size:9px; font-weight:400; color:var(--txt-faint);
   letter-spacing:.03em; text-transform:none;
+  display:flex; align-items:center; gap:0;
 }
+.leg-item{ display:inline-flex; align-items:center; gap:4px; margin-left:10px; font-size:9px; color:var(--txt-faint); letter-spacing:.03em; }
+.leg-line-s{ display:inline-block; width:14px; height:2px; background:#C92B1E; border-radius:1px; flex-shrink:0; }
+.leg-line-d{ display:inline-block; width:14px; height:0; border-top:1.5px dashed rgba(200,148,26,0.80); flex-shrink:0; }
 
 /* ─── HBAR (horizontal bar, HTML) ─── */
 .hbar-list{ display:flex; flex-direction:column; gap:0; }
