@@ -140,23 +140,21 @@
     <div class="mkpi"><div class="mkpi-v"       id="fn-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div><div class="mkpi-d" id="fn-ciclo-d"></div></div>
   </div>
 
-  <div class="block">
-    <div class="bhead"><div class="c-title pill-gray">Funil por Etapa</div><div class="bsub">Canal Germânia</div></div>
-    <div class="bbody"><div class="funil-list" id="funil-etapas"></div></div>
-  </div>
-
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Funil por Etapa</div><div class="bsub">Canal Germânia</div></div>
+      <div class="bbody">
+        <p class="card-desc">Onde cada lead está agora no processo comercial — etapas com mais volume indicam gargalos de conversão.</p>
+        <div class="funil-list" id="funil-etapas"></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="bhead"><div class="c-title pill-gray">Ciclo de Venda</div><div class="bsub">dias até fechar</div></div>
       <div class="bbody">
         <div style="max-height:160px"><canvas id="ch-ciclo"></canvas></div>
         <div class="divider"></div>
         <div class="mbar-list" id="ciclo-faixas"></div>
       </div>
-    </div>
-    <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Aging</div><div class="bsub">deals parados > 7d</div></div>
-      <div class="bbody"><div class="aging-list" id="aging-list"></div></div>
     </div>
   </div>
 
@@ -1275,19 +1273,6 @@ function renderFunil(rd,ez){
   barChart('ch-ciclo',Object.keys(fx),[{label:'Vendas',data:Object.values(fx),backgroundColor:['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa'],borderWidth:0}]);
   mbar('ciclo-faixas',Object.entries(fx).filter(([,v])=>v>0),'gold');
 
-  // Aging: deals Em Andamento parados > 7 dias
-  const hoje=new Date();
-  const aging=rawRD.filter(r=>estadoNorm(r)==='Em Andamento')
-    .map(r=>{const d=parseDate(r['Data de criação']);if(!d) return null;return {nome:r['Nome']||'(sem nome)',etapa:(r['Etapa']||'').replace('Atendimento / Demonstração','Atendimento'),dias:Math.round((hoje-d)/864e5)};})
-    .filter(v=>v&&v.dias>7).sort((a,b)=>b.dias-a.dias).slice(0,10);
-  const agingEl=document.getElementById('aging-list');
-  if(agingEl) agingEl.innerHTML=aging.length?aging.map(a=>`
-    <div class="aging-item ${a.dias>30?'hot':a.dias>14?'warm':'ok'}">
-      <div class="aging-name">${a.nome}</div>
-      <div class="aging-etapa">${a.etapa}</div>
-      <div class="aging-dias ${a.dias>30?'hot':'warm'}">${a.dias}d</div>
-    </div>`).join('')
-  :'<div class="empty"><div class="ei">✅</div>Nenhum deal parado acima de 7 dias</div>';
 
   // Motivos de perda via RD CRM
   const motivoFreq=freq(perdido.map(r=>({...r})),'Motivo de Perda')
