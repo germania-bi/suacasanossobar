@@ -90,6 +90,7 @@ body{
 .hk{
   background:rgba(0,0,0,0.22);
   border:0.8px solid rgba(255,255,255,0.08);
+  min-width:160px !important;
   border-radius:var(--radius);
   padding:10px 22px; text-align:center; min-width:110px;
 }
@@ -100,7 +101,7 @@ body{
 }
 .hk-v{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:var(--fs-data-lg); font-weight:900;
+  font-size:46px; font-weight:900;
   color:var(--gold-lt); line-height:1;
 }
 .hk-v .u{ font-size:14px; font-weight:600; opacity:.7; margin-left:1px; }
