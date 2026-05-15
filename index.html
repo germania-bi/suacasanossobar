@@ -952,13 +952,11 @@ function renderHeader(rd){
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
   const ticket=vendGerm.length?fat/vendGerm.length:0;
-  document.getElementById('hkv-leads').textContent=rdC.length||'0';
   document.getElementById('hkv-vendas').textContent=ganho.length;
   document.getElementById('hks-vendas').textContent=ganho.length===1?'venda fechada':'vendas fechadas';
   document.getElementById('hkv-fat').textContent=fmtBRLk(fat);
   document.getElementById('hkv-conv').textContent=conv+'%';
   document.getElementById('hks-conv').textContent=vendGerm.length+' de '+decididas.length+' decididas';
-  document.getElementById('hkv-ticket').textContent=fmtBRLk(ticket);
 }
 
 // ═══════════════════════════════════════════════════════
