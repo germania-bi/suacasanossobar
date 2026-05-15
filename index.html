@@ -1312,19 +1312,13 @@ function renderProduto(rd){
   const v110=produtos.filter(p=>p.voltagem==='110v').length;
   const v220=produtos.filter(p=>p.voltagem==='220v').length;
   const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-  const ticket=vendGerm.length?fat/vendGerm.length:0;
   const rdC=filterRDCriacao();
   const decididas=rdC.filter(r=>!isLoja(r)&&(estadoNorm(r)==='Ganho'||(estadoNorm(r)==='Perdido'&&(r['Motivo de Perda']||'').trim()!=='Não conseguiu contato')));
   const winRate=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
-  const masterVendas=ganho.filter(r=>parseProduto(r['Produtos']).modelo==='Master');
-  const fatMaster=masterVendas.filter(r=>!isLoja(r)).reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-  const ticketMaster=masterVendas.filter(r=>!isLoja(r)).length?fatMaster/masterVendas.filter(r=>!isLoja(r)).length:0;
 
   document.getElementById('pr-master').textContent=master;
   document.getElementById('pr-mini').textContent=mini||'0';
   document.getElementById('pr-winrate').textContent=winRate+'%';
-  document.getElementById('pr-ticket-master').textContent=fmtBRLk(ticketMaster);
-  document.getElementById('pr-ticket').textContent=fmtBRLk(ticket);
   document.getElementById('pr-fat').textContent=fmtBRLk(fat);
 
   // Deltas KPIs
@@ -1337,18 +1331,12 @@ function renderProduto(rd){
     const pMini=pProd.filter(p=>p.modelo==='Mini').length;
     const pVendGerm=pGanho.filter(r=>!isLoja(r));
     const pFat=pVendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-    const pTicket=pVendGerm.length?pFat/pVendGerm.length:0;
     const pRdC=rawRD.filter(r=>{if(canal==='germania'&&isLoja(r))return false;if(canal==='loja'&&!isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pDecididas=pRdC.filter(r=>!isLoja(r)&&(estadoNorm(r)==='Ganho'||(estadoNorm(r)==='Perdido'&&(r['Motivo de Perda']||'').trim()!=='Não conseguiu contato')));
     const pWinRate=pDecididas.length?Math.round(pVendGerm.length/pDecididas.length*100):0;
-    const pMasterVendGerm=pGanho.filter(r=>!isLoja(r)&&parseProduto(r['Produtos']).modelo==='Master');
-    const pFatMaster=pMasterVendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-    const pTicketMaster=pMasterVendGerm.length?pFatMaster/pMasterVendGerm.length:0;
     setDelta('pr-master-d',master,pMaster,false,false,dlbl);
     setDelta('pr-mini-d',mini,pMini,false,false,dlbl);
     setDelta('pr-winrate-d',winRate,pWinRate,true,false,dlbl);
-    setDelta('pr-ticket-master-d',ticketMaster,pTicketMaster,false,true,dlbl);
-    setDelta('pr-ticket-d',ticket,pTicket,false,true,dlbl);
     setDelta('pr-fat-d',fat,pFat,false,true,dlbl);
   }
 
