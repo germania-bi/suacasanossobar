@@ -121,7 +121,7 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gold">Canal Germânia</div><div class="bsub" id="vg-canal-periodo"></div></div>
+      <div class="bhead gold"><div class="c-title pill-gold">Canais de Venda</div><div class="bsub" id="vg-canal-periodo"></div></div>
       <div class="bbody" id="vg-canal-body"><div class="empty"><div class="ei">⏳</div>Carregando...</div></div>
     </div>
     <div class="block block-map">
@@ -1107,33 +1107,33 @@ function renderVisaoGeral(rd,ez,ads){
     });
   }
 
-  // Canal Germânia breakdown
+  // Canais de Venda breakdown
   const canais=[
-    {key:'WPP Button',label:'💬 WPP Button',cls:'org'},
-    {key:'Form Direto',label:'📋 Form Direto',cls:'ads'},
-    {key:'Orgânico',label:'🌱 Orgânico',cls:'org'},
+    {key:'WPP Button', label:'Campanha paga direcionado WhatsApp'},
+    {key:'Form Direto',label:'Campanha paga formulário Landing Page'},
+    {key:'Orgânico',   label:'Orgânico'},
   ];
   const lojaLeads=rdC.filter(r=>isLoja(r));
   const canalRows=[
-    ...canais.map(({key,label,cls})=>{
+    ...canais.map(({key,label})=>{
       const leads=rdC.filter(r=>parseCampanha(r['Campanha'])===key&&!isLoja(r));
       const v=leads.filter(r=>estadoNorm(r)==='Ganho').length;
-      return {label,leads:leads.length,v,cls};
+      return {label,leads:leads.length,v};
     }),
-    {label:'🤝 Venda de Loja',leads:lojaLeads.length,v:lojaLeads.filter(r=>estadoNorm(r)==='Ganho').length,cls:'loja'},
+    {label:'Venda de Loja',leads:lojaLeads.length,v:lojaLeads.filter(r=>estadoNorm(r)==='Ganho').length},
   ];
   const canalBody=document.getElementById('vg-canal-body');
-  if(canalBody) canalBody.innerHTML=canalRows.map(({label,leads,v,cls})=>`
-    <div class="ao-row ${cls}" style="margin-bottom:6px">
-      <div class="ao-ico">${label.split(' ')[0]}</div>
-      <div class="ao-label"><h5>${label.slice(2).trim()}</h5><p>${leads} leads</p></div>
+  if(canalBody) canalBody.innerHTML=canalRows.map(({label,leads,v})=>`
+    <div class="ao-row" style="margin-bottom:6px">
+      <div class="ao-label"><h5>${label}</h5></div>
       <div class="ao-stats">
+        <div><div class="ao-stat-v">${leads}</div><div class="ao-stat-l">Leads</div></div>
         <div><div class="ao-stat-v" style="color:var(--s-green)">${v}</div><div class="ao-stat-l">Vendas</div></div>
         <div><div class="ao-stat-v">${leads?Math.round(v/leads*100):0}%</div><div class="ao-stat-l">Conv.</div></div>
       </div>
     </div>`).join('');
   const el=document.getElementById('vg-canal-periodo');
-  if(el) el.textContent=rdC.length+' leads';
+  if(el) el.textContent='';
 
   // Top cidades — mapa SP
   renderMapaSP(ganho);
