@@ -607,3 +607,21 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   .funil-etapa{ width:130px; }
   .stbl-wrap{ overflow-x:auto; }
 }
+
+/* ─── LEAFLET MAP OVERRIDES ─── */
+.leaflet-container{ background:#1A1208; font-family:'Barlow',sans-serif; border-radius:0 0 6px 6px; outline:none; }
+.leaflet-control-zoom{ border:0.8px solid rgba(255,200,120,0.18) !important; }
+.leaflet-control-zoom a{
+  background:var(--card) !important; color:var(--txt-mid) !important;
+  border-bottom:0.8px solid rgba(255,200,120,0.12) !important;
+  font-weight:700; line-height:26px;
+}
+.leaflet-control-zoom a:hover{ background:var(--card2) !important; color:var(--txt) !important; }
+.leaflet-control-attribution{ font-size:8px !important; background:rgba(26,18,8,0.7) !important; color:var(--txt-faint) !important; }
+.leaflet-control-attribution a{ color:var(--txt-faint) !important; }
+.mapa-tooltip{
+  background:var(--card2); border:0.8px solid rgba(255,200,120,0.22);
+  color:var(--txt); font-size:12px; padding:5px 9px; border-radius:5px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.5); white-space:nowrap;
+}
+.mapa-tooltip::before{ display:none; }

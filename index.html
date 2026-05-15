@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -126,7 +128,7 @@
     </div>
     <div class="block">
       <div class="bhead blue"><div class="c-title pill-blue">Top Cidades</div></div>
-      <div class="bbody" style="padding:8px 12px"><div id="vg-cidades-map"></div></div>
+      <div class="bbody" style="padding:0"><div id="vg-cidades-map" style="height:240px;border-radius:0 0 6px 6px"></div></div>
     </div>
   </div>
 
@@ -430,6 +432,7 @@ function switchTab(name,el){
   document.getElementById('panel-'+name).classList.add('active');
   activeTab=name;
   renderAll();
+  if(name==='visao'&&_mapaLeaflet) setTimeout(()=>_mapaLeaflet.invalidateSize(),100);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -797,71 +800,77 @@ function setDelta(id,cur,prev,isPercent,isBRL,label){
 }
 
 // ═══════════════════════════════════════════════════════
-// MAPA SP
+// MAPA SP — Leaflet.js
 // ═══════════════════════════════════════════════════════
-// Coordenadas calculadas a partir de lat/lon reais via fórmula:
-// x=(lon+53.1)/8.9*320  y=(-19.8-lat)/5.5*260
 const CIDADES_SP={
-  'São Paulo':              {x:233,y:177},
-  'Guarulhos':              {x:239,y:168},
-  'Campinas':               {x:217,y:147},
-  'São Bernardo do Campo':  {x:235,y:184},
-  'Santo André':            {x:239,y:183},
-  'Osasco':                 {x:226,y:176},
-  'Sorocaba':               {x:203,y:175},
-  'Jundiaí':                {x:224,y:160},
-  'Ribeirão Preto':         {x:190,y:65},
-  'Santos':                 {x:244,y:197},
-  'Mauá':                   {x:241,y:183},
-  'Bauru':                  {x:145,y:119},
-  'Piracicaba':             {x:196,y:139},
-  'São José dos Campos':    {x:262,y:160},
-  'São José do Rio Preto':  {x:134,y:48},
-  'Presidente Prudente':    {x:62,y:110},
-  'Marília':                {x:116,y:113},
-  'Araçatuba':              {x:96,y:67},
-  'Taubaté':                {x:272,y:153},
-  'Suzano':                 {x:249,y:176},
-  'Diadema':                {x:235,y:185},
-  'Carapicuíba':            {x:222,y:176},
-  'Mogi das Cruzes':        {x:253,y:175},
-  'Praia Grande':           {x:241,y:202},
-  'Franca':                 {x:207,y:38},
-  'Limeira':                {x:205,y:133},
-  'São Carlos':             {x:175,y:111},
-  'Araraquara':             {x:177,y:93},
-  'Americana':              {x:210,y:141},
-  'Itaquaquecetuba':        {x:250,y:167},
+  'São Paulo':              {lat:-23.5505,lon:-46.6333},
+  'Guarulhos':              {lat:-23.4628,lon:-46.5328},
+  'Campinas':               {lat:-22.9056,lon:-47.0608},
+  'São Bernardo do Campo':  {lat:-23.6939,lon:-46.5650},
+  'Santo André':            {lat:-23.6639,lon:-46.5383},
+  'Osasco':                 {lat:-23.5329,lon:-46.7921},
+  'Sorocaba':               {lat:-23.5015,lon:-47.4526},
+  'Jundiaí':                {lat:-23.1864,lon:-46.8981},
+  'Ribeirão Preto':         {lat:-21.1775,lon:-47.8103},
+  'Santos':                 {lat:-23.9618,lon:-46.3322},
+  'Mauá':                   {lat:-23.6678,lon:-46.4608},
+  'Bauru':                  {lat:-22.3247,lon:-49.0653},
+  'Piracicaba':             {lat:-22.7253,lon:-47.6481},
+  'São José dos Campos':    {lat:-23.1781,lon:-45.8872},
+  'São José do Rio Preto':  {lat:-20.8197,lon:-49.3794},
+  'Presidente Prudente':    {lat:-22.1256,lon:-51.3889},
+  'Marília':                {lat:-22.2178,lon:-49.9447},
+  'Araçatuba':              {lat:-21.2097,lon:-50.4406},
+  'Taubaté':                {lat:-23.0262,lon:-45.5553},
+  'Suzano':                 {lat:-23.5422,lon:-46.3131},
+  'Diadema':                {lat:-23.6861,lon:-46.6228},
+  'Carapicuíba':            {lat:-23.5237,lon:-46.8349},
+  'Mogi das Cruzes':        {lat:-23.5228,lon:-46.1861},
+  'Praia Grande':           {lat:-24.0058,lon:-46.4025},
+  'Franca':                 {lat:-20.5333,lon:-47.4000},
+  'Limeira':                {lat:-22.5636,lon:-47.4017},
+  'São Carlos':             {lat:-22.0100,lon:-47.8919},
+  'Araraquara':             {lat:-21.7928,lon:-48.1750},
+  'Americana':              {lat:-22.7386,lon:-47.3328},
+  'Itaquaquecetuba':        {lat:-23.4869,lon:-46.3481},
+  'Cotia':                  {lat:-23.6031,lon:-46.9189},
+  'Cajamar':                {lat:-23.3575,lon:-46.8781},
+  'Itatiba':                {lat:-22.9997,lon:-46.8386},
+  'Salto':                  {lat:-23.2011,lon:-47.2878},
+  'Taquarituba':            {lat:-23.5294,lon:-49.2428},
+  'Indaiatuba':             {lat:-23.0900,lon:-47.2194},
+  'Atibaia':                {lat:-23.1172,lon:-46.5506},
+  'Valinhos':               {lat:-22.9728,lon:-46.9961},
+  'Vinhedo':                {lat:-23.0297,lon:-46.9750},
+  'Paulínia':               {lat:-22.7597,lon:-47.1556},
+  'Santa Bárbara d\'Oeste': {lat:-22.7536,lon:-47.4142},
+  'Hortolândia':            {lat:-22.8578,lon:-47.2203},
+  'Jacareí':                {lat:-23.2997,lon:-45.9656},
+  'São José do Rio Pardo':  {lat:-21.5939,lon:-46.8903},
 };
 
-// Normaliza cidade para matching tolerante a acentos/maiúsculas/sufixo "- SP"
 function normCidade(s){
   return (s||'').trim()
-    .replace(/\s*[-–]\s*\w{2}$|\/\w{2}$/,'') // remove "- SP" ou "/ SP"
+    .replace(/\s*[-–]\s*\w{2}$|\/\w{2}$/,'')
     .normalize('NFD').replace(/[̀-ͯ]/g,'')
     .toLowerCase().replace(/\s+/g,' ').trim();
 }
-// lookup normalizado → {cidade, x, y}
 const _cidadesNorm={};
-Object.entries(CIDADES_SP).forEach(([c,xy])=>{_cidadesNorm[normCidade(c)]={cidade:c,...xy};});
+Object.entries(CIDADES_SP).forEach(([c,coord])=>{_cidadesNorm[normCidade(c)]={cidade:c,...coord};});
 
 function resolveCity(raw){
   if(!raw) return null;
-  const exact=CIDADES_SP[raw.trim()];
-  if(exact) return raw.trim();
+  if(CIDADES_SP[raw.trim()]) return raw.trim();
   const norm=_cidadesNorm[normCidade(raw)];
-  if(norm) return norm.cidade;
-  return null; // unmapped
+  return norm?norm.cidade:null;
 }
 
-// Contorno do estado de SP: 30 pontos derivados de lat/lon reais
-// formula: x=(lon+53.1)/8.9*320  y=(-19.8-lat)/5.5*260
-const SP_PATH='M 0,130 L 0,152 L 1,178 L 13,198 L 28,211 L 43,223 L 56,226 L 66,246 L 85,252 L 98,238 L 132,212 L 155,225 L 165,257 L 199,232 L 221,210 L 246,194 L 255,199 L 266,177 L 300,162 L 319,127 L 320,105 L 306,67 L 294,34 L 255,11 L 191,0 L 129,2 L 76,7 L 43,26 L 18,57 L 6,104 Z';
+let _mapaLeaflet=null, _mapaLayers=[];
 
 function renderMapaSP(ganho){
   const el=document.getElementById('vg-cidades-map');
   if(!el) return;
-  const counts={};  // chave = nome canônico do dicionário ou raw
+  const counts={};
   ganho.forEach(r=>{
     const raw=(r['Unidades de atendimento']||'').trim();
     if(!raw) return;
@@ -869,26 +878,44 @@ function renderMapaSP(ganho){
     counts[canon]=(counts[canon]||0)+1;
   });
   if(!Object.keys(counts).length){
-    el.innerHTML='<div class="empty" style="height:140px;justify-content:center"><div class="ei">📍</div>Sem cidades no período</div>';
+    if(_mapaLeaflet){_mapaLeaflet.remove();_mapaLeaflet=null;_mapaLayers=[];}
+    el.style.height='120px';
+    el.innerHTML='<div class="empty" style="height:120px;justify-content:center"><div class="ei">📍</div>Sem cidades no período</div>';
     return;
   }
+  el.style.height='240px';
+  if(!_mapaLeaflet){
+    el.innerHTML='';
+    try{
+      _mapaLeaflet=L.map(el,{zoomControl:true,scrollWheelZoom:false})
+        .setView([-22.5,-48.5],7);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains:'abcd',maxZoom:19
+      }).addTo(_mapaLeaflet);
+    }catch(e){console.error('Leaflet init:',e);_mapaLeaflet=null;return;}
+  } else {
+    _mapaLayers.forEach(l=>l.remove());
+    _mapaLayers=[];
+  }
   const max=Math.max(...Object.values(counts),1);
-  const circles=[];
-  const unmapped=[];
+  const bounds=[];
   Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([cidade,n])=>{
     const coord=CIDADES_SP[cidade];
-    if(!coord){unmapped.push([cidade,n]);return;}
-    const {x,y}=coord;
-    const r=Math.max(5,Math.round(Math.sqrt(n/max)*22));
-    const lbl=cidade.length>12?cidade.split(' ')[0]:cidade;
-    circles.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(201,43,30,0.55)" stroke="#C92B1E" stroke-width="1.4" opacity="0.9">
-  <title>${cidade}: ${n} venda${n>1?'s':''}</title></circle>
-<text x="${x}" y="${y+r+8}" text-anchor="middle" font-size="7.5" fill="#A89870" pointer-events="none">${lbl}</text>`);
+    if(!coord) return;
+    const r=Math.max(7,Math.round(Math.sqrt(n/max)*22));
+    const m=L.circleMarker([coord.lat,coord.lon],{
+      radius:r, fillColor:'#C92B1E', color:'#ff6b5b',
+      weight:1.5, fillOpacity:0.65, opacity:0.9
+    }).bindTooltip(`<strong>${cidade}</strong>: ${n} venda${n>1?'s':''}`,{
+      className:'mapa-tooltip',sticky:true,direction:'top',offset:[0,-4]
+    });
+    m.addTo(_mapaLeaflet);
+    _mapaLayers.push(m);
+    bounds.push([coord.lat,coord.lon]);
   });
-  el.innerHTML=`<svg viewBox="0 0 320 260" width="100%" style="max-height:230px;display:block;overflow:visible">
-  <path d="${SP_PATH}" fill="rgba(200,148,26,0.07)" stroke="rgba(200,148,26,0.35)" stroke-width="1.3" stroke-linejoin="round"/>
-  ${circles.join('\n')}
-</svg>`+(unmapped.length?`<div style="font-size:10px;color:var(--txt-faint);margin-top:5px;line-height:1.8;padding:0 4px">${unmapped.map(([c,n])=>`<span style="margin-right:8px">${c} <strong style="color:var(--txt-mid)">(${n})</strong></span>`).join('')}</div>`:'');
+  if(bounds.length) try{_mapaLeaflet.fitBounds(bounds,{padding:[24,24],maxZoom:9});}catch(e){}
+  setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},120);
 }
 
 // ═══════════════════════════════════════════════════════
