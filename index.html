@@ -436,7 +436,14 @@ function parseDate(s){
 
 function parseBRL(s){
   if(!s) return 0;
-  const v=parseFloat(s.replace(/\./g,'').replace(',','.'));
+  s=s.replace(/[R$\s%]/g,'').trim();
+  if(!s) return 0;
+  // BRL: ponto=milhar e vírgula=decimal → "1.234,56"
+  if(s.includes('.')&&s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
+  // só vírgula → decimal
+  else if(s.includes(',')&&!s.includes('.')) s=s.replace(',','.');
+  // só ponto ou nenhum → já está em formato numérico
+  const v=parseFloat(s);
   return isNaN(v)?0:v;
 }
 function parseMin(s){
@@ -1635,7 +1642,7 @@ function renderMarketing(rd,ads){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
   const fat=ganhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
-  const investTotal=ads.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']),0);
+  const investTotal=ads.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']||r['Quantia gasta (BRL)']||r['Valor gasto']||''),0);
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
@@ -1655,7 +1662,7 @@ function renderMarketing(rd,ads){
     const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
     const pFat=pGanhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
     const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
-    const pInvest=pAds.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']),0);
+    const pInvest=pAds.reduce((s,r)=>s+parseBRL(r['Valor gasto (BRL)']||r['Quantia gasta (BRL)']||r['Valor gasto']||''),0);
     const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
     const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
     const pRoi=pInvest?pFat/pInvest:0;
@@ -1742,8 +1749,7 @@ function renderMarketing(rd,ads){
       if(!d) return;
       const wk=fmt(new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay()));
       if(!semanas[wk]) semanas[wk]={invest:0,leads:0};
-      const v=parseBRL(r['Valor gasto (BRL)']);
-      semanas[wk].invest+=v;
+      semanas[wk].invest+=parseBRL(r['Valor gasto (BRL)']||r['Quantia gasta (BRL)']||r['Valor gasto']||'');
       const l=parseInt(r['Resultados']||'0');
       if(!isNaN(l)) semanas[wk].leads+=l;
     });
