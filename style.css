@@ -374,6 +374,20 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   color:var(--txt); flex-shrink:0; width:36px; text-align:right;
 }
 
+/* ─── DISTRIBUIÇÃO (split bar) ─── */
+.dist-row{ display:flex; align-items:stretch; gap:0; }
+.dist-section{ flex:1; display:flex; flex-direction:column; gap:12px; padding:0 20px; }
+.dist-section:first-child{ padding-left:0; }
+.dist-section:last-child{ padding-right:0; }
+.dist-divider{ width:1px; background:var(--border); flex-shrink:0; margin:0 4px; }
+.dist-bar{ height:8px; border-radius:4px; overflow:hidden; display:flex; gap:2px; }
+.dist-items{ display:flex; flex-direction:column; gap:6px; }
+.dist-item{ display:flex; align-items:center; gap:7px; }
+.dist-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.dist-n{ font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; color:var(--txt); line-height:1; min-width:24px; }
+.dist-name{ font-size:12px; color:var(--txt-mid); flex:1; }
+.dist-pct{ font-size:11px; color:var(--txt-dim); }
+
 /* ─── MIX DE PRODUTO ─── */
 .mix-list{ display:flex; flex-direction:column; gap:10px; }
 .mix-item{ display:flex; align-items:center; gap:10px; }

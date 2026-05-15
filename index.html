@@ -184,10 +184,17 @@
     <div class="mkpi"><div class="mkpi-v gold"  id="pr-fat">--</div><div class="mkpi-l">Faturado</div><div class="mkpi-d" id="pr-fat-d"></div></div>
   </div>
 
-  <div class="g3">
-    <div class="chart-box"><div class="ctitle"><span class="c-title pill-gray">Modelo</span></div><canvas id="ch-modelo"></canvas></div>
-    <div class="chart-box"><div class="ctitle"><span class="c-title pill-gray">Voltagem</span></div><canvas id="ch-volt"></canvas></div>
-    <div class="chart-box"><div class="ctitle"><span class="c-title pill-gray">Forma de Pagamento</span></div><canvas id="ch-pgto"></canvas></div>
+  <div class="block">
+    <div class="bhead"><div class="c-title pill-gray">Distribuição</div><div class="bsub">modelo · voltagem · pagamento</div></div>
+    <div class="bbody">
+      <div class="dist-row">
+        <div class="dist-section" id="dist-modelo"></div>
+        <div class="dist-divider"></div>
+        <div class="dist-section" id="dist-volt"></div>
+        <div class="dist-divider"></div>
+        <div class="dist-section" id="dist-pgto"></div>
+      </div>
+    </div>
   </div>
 
   <div class="g2">
@@ -1336,10 +1343,25 @@ function renderProduto(rd){
     setDelta('pr-fat-d',fat,pFat,false,true,dlbl);
   }
 
-  if(master||mini)  donut('ch-modelo',['Master','Mini'],[master,mini||0],['#C92B1E','#C8941A']);
-  if(v110||v220)    donut('ch-volt',['110v','220v'],[v110,v220],['#5B7FA6','#1E7A42']);
+  // Distribuição: Modelo, Voltagem, Pagamento
+  function renderDist(id,entries){
+    const el=document.getElementById(id);if(!el) return;
+    const total=entries.reduce((s,[,,v])=>s+v,0)||1;
+    el.innerHTML=`
+      <div class="dist-bar">${entries.map(([,cor,v])=>`<div style="width:${Math.round(v/total*100)}%;background:${cor};height:100%"></div>`).join('')}</div>
+      <div class="dist-items">${entries.map(([l,cor,v])=>`
+        <div class="dist-item">
+          <span class="dist-dot" style="background:${cor}"></span>
+          <span class="dist-n">${v}</span>
+          <span class="dist-name">${l}</span>
+          <span class="dist-pct">${Math.round(v/total*100)}%</span>
+        </div>`).join('')}</div>`;
+  }
+  renderDist('dist-modelo',[['Master','#C92B1E',master],['Mini','#C8941A',mini||0]].filter(([,,v])=>v>0));
+  renderDist('dist-volt',[['110v','#5B7FA6',v110],['220v','#1E7A42',v220]].filter(([,,v])=>v>0));
   const pgto=freq(ganho,'Forma de pagamento');
-  if(pgto.length)   donut('ch-pgto',pgto.map(e=>e[0]),pgto.map(e=>e[1]));
+  const pgtoColors=['#C92B1E','#C8941A','#5B7FA6','#1E7A42','#a78bfa'];
+  renderDist('dist-pgto',pgto.slice(0,4).map(([l,v],i)=>[l,pgtoColors[i],v]));
 
   // Mix de Produto (Modelo × Voltagem)
   const combos=[
