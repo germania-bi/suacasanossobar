@@ -254,18 +254,10 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 }
 .bhead{
   display:flex; align-items:center; gap:10px;
-  padding:13px 18px; border-bottom:0.8px solid var(--border2);
+  padding:13px 18px;
   background:linear-gradient(180deg,var(--card2) 0%,var(--card) 100%);
   position:relative;
 }
-.bhead::before{
-  content:''; position:absolute;
-  left:0; top:0; bottom:0; width:3px;
-  background:var(--red);
-}
-.bhead.gold::before{ background:var(--gold-lt); }
-.bhead.green::before{ background:var(--s-green); }
-.bhead.blue::before{ background:var(--blue); }
 .bico{
   width:26px; height:26px; border-radius:4px;
   display:flex; align-items:center; justify-content:center;
@@ -611,8 +603,6 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 /* ─── BLOCK MAP (card que contém mapa) ─── */
 .block-map{ display:flex; flex-direction:column; }
 .block-map .bbody{ flex:1; }
-.bhead.no-accent{ border-bottom:none; }
-.bhead.no-accent::before{ display:none; }
 
 /* ─── LEAFLET MAP OVERRIDES ─── */
 .leaflet-container{ background:#1A1208; font-family:'Barlow',sans-serif; border-radius:0 0 6px 6px; outline:none; }
