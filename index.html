@@ -107,7 +107,6 @@
     <div class="mkpi"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão</div><div class="mkpi-d" id="vg-conv-d"></div></div>
     <div class="mkpi"><div class="mkpi-v gold"   id="vg-ticket">--</div><div class="mkpi-l">Ticket Médio</div><div class="mkpi-d" id="vg-ticket-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio</div><div class="mkpi-d" id="vg-ciclo-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="vg-tpi">--</div><div class="mkpi-l">TPI Médio</div><div class="mkpi-d" id="vg-tpi-d"></div></div>
   </div>
 
   <div class="g21">
@@ -970,7 +969,6 @@ function renderVisaoGeral(rd,ez,ads){
   document.getElementById('vg-conv').textContent=conv+'%';
   document.getElementById('vg-ticket').textContent=fmtBRLk(ticket);
   document.getElementById('vg-ciclo').textContent=ciclos.length?Math.round(avg(ciclos))+'d':'--';
-  document.getElementById('vg-tpi').textContent=fmtMin(avg(tpis));
 
   // Delta de período
   const prev=getPrevPeriod();
@@ -983,7 +981,6 @@ function renderVisaoGeral(rd,ez,ads){
   setDelta('vg-conv-d',  conv,              p?.conv,    true, false,dlbl);
   setDelta('vg-ticket-d',ticket,            p?.ticket,  false,true, dlbl);
   setDelta('vg-ciclo-d', ciclos.length?Math.round(avg(ciclos)):0, p?.ciclo, false,false,dlbl);
-  setDelta('vg-tpi-d',   avg(tpis)!==null?Math.round(avg(tpis)):null, p?.tpi!==null?Math.round(p.tpi):null, false,false,dlbl);
 
   // Leads por dia — com linha comparativa e tooltip
   const diasMap={};
