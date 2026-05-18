@@ -915,10 +915,20 @@ function resolveCity(raw){
   if(!raw) return null;
   const trimmed=raw.trim();
   if(CIDADES_SP[trimmed]) return trimmed;
+  // Tenta normalização completa
   const norm=_cidadesNorm[normCidade(trimmed)];
   if(norm) return norm.cidade;
+  // Remove conteúdo entre parênteses: "Cajamar (SP)" → "Cajamar"
+  const noParens=trimmed.replace(/\s*\([^)]*\)/g,'').trim();
+  if(noParens&&noParens!==trimmed){
+    const n2=_cidadesNorm[normCidade(noParens)];
+    if(n2) return n2.cidade;
+  }
+  // Tenta cada segmento separado por - , /
   for(const part of trimmed.split(/[-,\/]/)){
-    const n=_cidadesNorm[normCidade(part.trim())];
+    const p=part.trim();
+    if(p.length<3) continue;
+    const n=_cidadesNorm[normCidade(p)];
     if(n) return n.cidade;
   }
   return null;
@@ -1078,16 +1088,13 @@ function renderVisaoGeral(rd,ez,ads){
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const vendLoja=ganho.filter(r=>isLoja(r));
   const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-  // fatTotal: soma de TODAS as vendas no período (Germania + Loja), ignora filtro de canal
-  const computeFatAll=(from,to)=>{
-    const canal=filtroCanal();
-    return rawRD.filter(r=>{
-      if(estadoNorm(r)!=='Ganho') return false;
-      const dC=parseDate(r['Data de criação']),dF=parseDate(r['Data de fechamento']);
-      const d=dC||dF;
-      return d&&(!from||d>=from)&&(!to||d<=to);
-    }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
-  };
+  // fatTotal: faturamento Canal Germânia, sempre via rawRD (ignora filtro de canal)
+  // → mostra 32k mesmo quando filtro de canal = Loja
+  const computeFatAll=(from,to)=>rawRD.filter(r=>{
+    if(isLoja(r)||estadoNorm(r)!=='Ganho') return false;
+    const dC=parseDate(r['Data de criação']);
+    return dC&&(!from||dC>=from)&&(!to||dC<=to);
+  }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
   const fatTotal=computeFatAll(dateFrom,dateTo);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
