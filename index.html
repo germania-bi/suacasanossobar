@@ -278,50 +278,39 @@
   </div>
 
   <div class="g2">
-    <div>
-      <div class="block mb">
-        <div class="bhead"><div class="c-title pill-gray">Ads → WhatsApp</div><div class="bsub">direcionado para WhatsApp</div></div>
-        <div class="bbody">
-          <div class="ccf-stats">
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-wpp-leads">--</div><div class="ccf-sl">Leads</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-wpp-vendas">--</div><div class="ccf-sl">Vendas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-wpp-perdas">--</div><div class="ccf-sl">Perdas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-wpp-conv">--</div><div class="ccf-sl">Conv.</div></div>
+    <div style="display:flex;flex-direction:column">
+      <div class="block" style="flex:1;display:flex;flex-direction:column">
+        <div class="bhead"><div class="c-title pill-gray">Canais de Aquisição</div><div class="bsub">leads · vendas · conversão por origem</div></div>
+        <div class="bbody" style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+          <div class="canal-ch">
+            <div class="canal-ch-lbl">Ads → WhatsApp</div>
+            <div class="canal-ch-stats">
+              <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-wpp-leads">--</span><span class="canal-ch-l">leads</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-wpp-vendas">--</span><span class="canal-ch-l">vendas</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-wpp-perdas">--</span><span class="canal-ch-l">perdas</span></div>
+              <span class="conv-badge lo" id="ccf-wpp-conv">--</span>
+            </div>
           </div>
-          <div class="ccf-bar-wrap" style="margin-top:6px"><div class="ccf-bar" id="ccf-wpp-bar" style="width:0%;background:var(--gold-lt)"></div></div>
-        </div>
-      </div>
-      <div class="block mb">
-        <div class="bhead"><div class="c-title pill-gray">Ads → Formulário LP</div><div class="bsub">direcionado para Formulário LP</div></div>
-        <div class="bbody">
-          <div class="ccf-stats">
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-form-leads">--</div><div class="ccf-sl">Leads</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-form-vendas">--</div><div class="ccf-sl">Vendas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-form-perdas">--</div><div class="ccf-sl">Perdas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-form-conv">--</div><div class="ccf-sl">Conv.</div></div>
+          <div class="divider"></div>
+          <div class="canal-ch">
+            <div class="canal-ch-lbl">Ads → Formulário LP</div>
+            <div class="canal-ch-stats">
+              <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-form-leads">--</span><span class="canal-ch-l">leads</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-form-vendas">--</span><span class="canal-ch-l">vendas</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-form-perdas">--</span><span class="canal-ch-l">perdas</span></div>
+              <span class="conv-badge lo" id="ccf-form-conv">--</span>
+            </div>
           </div>
-          <div class="ccf-bar-wrap" style="margin-top:6px"><div class="ccf-bar" id="ccf-form-bar" style="width:0%;background:var(--gold-lt)"></div></div>
-        </div>
-      </div>
-      <div class="block">
-        <div class="bhead"><div class="c-title pill-gray">Orgânico</div><div class="bsub">indicação · ativo · outros</div></div>
-        <div class="bbody">
-          <div class="ccf-stats">
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-org-leads">--</div><div class="ccf-sl">Leads</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-green)" id="ccf-org-vendas">--</div><div class="ccf-sl">Vendas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" style="color:var(--s-red)" id="ccf-org-perdas">--</div><div class="ccf-sl">Perdas</div></div>
-            <div class="ccf-sep"></div>
-            <div class="ccf-stat"><div class="ccf-sv" id="ccf-org-conv">--</div><div class="ccf-sl">Conv.</div></div>
+          <div class="divider"></div>
+          <div class="canal-ch">
+            <div class="canal-ch-lbl">Orgânico</div>
+            <div class="canal-ch-stats">
+              <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-org-leads">--</span><span class="canal-ch-l">leads</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-org-vendas">--</span><span class="canal-ch-l">vendas</span></div>
+              <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-org-perdas">--</span><span class="canal-ch-l">perdas</span></div>
+              <span class="conv-badge lo" id="ccf-org-conv">--</span>
+            </div>
           </div>
-          <div class="ccf-bar-wrap" style="margin-top:6px"><div class="ccf-bar" id="ccf-org-bar" style="width:0%;background:var(--gold-lt)"></div></div>
         </div>
       </div>
     </div>
@@ -1695,16 +1684,16 @@ function renderMarketing(rd,ads){
   const wppS=canalStats('WPP Button'),formS=canalStats('Form Direto'),orgS=canalStats('Orgânico');
   const totalL=wppS.leads+formS.leads+orgS.leads||1;
 
-  const setCard=(pfx,s,total)=>{
-    ['leads','vendas','perdas','conv'].forEach(k=>{ const el=document.getElementById('ccf-'+pfx+'-'+k); if(el) el.textContent=k==='conv'?s[k]+'%':s[k]; });
-    const bar=document.getElementById('ccf-'+pfx+'-bar');
-    if(bar) bar.style.width=Math.round(s.leads/total*100)+'%';
+  const setCard=(pfx,s)=>{
+    ['leads','vendas','perdas'].forEach(k=>{const el=document.getElementById('ccf-'+pfx+'-'+k);if(el) el.textContent=s[k];});
+    const convEl=document.getElementById('ccf-'+pfx+'-conv');
+    if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
-  setCard('wpp',wppS,totalL); setCard('form',formS,totalL); setCard('org',orgS,totalL);
+  setCard('wpp',wppS); setCard('form',formS); setCard('org',orgS);
 
   // Tabela funil por origem
   const tbody=document.getElementById('mk-funil-origem-body');
-  if(tbody) tbody.innerHTML=[['WPP Button',wppS,'wpp'],['Form Direto',formS,'form'],['Orgânico',orgS,'org']].map(([n,s,cls])=>`
+  if(tbody) tbody.innerHTML=[['Ads → WhatsApp',wppS,'wpp'],['Ads → Formulário LP',formS,'form'],['Orgânico',orgS,'org']].map(([n,s,cls])=>`
     <tr>
       <td><span class="badge ${cls}">${n}</span></td>
       <td style="text-align:center">${s.leads}</td>
