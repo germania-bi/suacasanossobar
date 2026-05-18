@@ -332,7 +332,7 @@
 
   <!-- Linha 3: Investimento vs Leads -->
   <div class="block">
-    <div class="bhead"><div class="c-title pill-gray">Investimento vs Leads</div><div class="bsub">evolução semanal Meta</div></div>
+    <div class="bhead"><div class="c-title pill-gray">Investimento vs Leads</div><div class="bsub" id="mk-invest-bsub">evolução Meta</div></div>
     <div class="bbody" style="padding-top:12px;padding-bottom:16px"><div style="position:relative;height:260px"><canvas id="ch-invest-leads"></canvas></div></div>
   </div>
 
@@ -1740,12 +1740,13 @@ function renderMarketing(rd,ads){
   const diasSemana=['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   const diaCount=new Array(7).fill(0);
   rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d) diaCount[d.getDay()]++;});
-  const maxDia=Math.max(...diaCount);
+  const maxDia=Math.max(...diaCount)||1;
   dc('ch-diasemana');
   const ctxDia=document.getElementById('ch-diasemana');
   if(ctxDia) charts['ch-diasemana']=new Chart(ctxDia,{type:'bar',data:{labels:diasSemana,datasets:[{
     label:'Leads',data:diaCount,
-    backgroundColor:diaCount.map(v=>v===maxDia&&maxDia>0?'#C92B1E':'rgba(201,43,30,0.35)'),borderWidth:0
+    backgroundColor:diaCount.map(v=>{const r=v/maxDia;return `rgba(30,122,66,${(0.15+r*0.85).toFixed(2)})`;}),
+    borderWidth:0,borderRadius:3
   }]},options:{
     responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false}},
@@ -1755,38 +1756,50 @@ function renderMarketing(rd,ads){
     }
   }});
 
-  // Investimento vs Leads semanal — S1=1-9, S2=10-16, S3=17-23, S4=24-fim
+  // Investimento vs Leads — granularidade adaptativa ao período
   if(ads.length){
     const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    const semKey=d=>{
-      const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';
-      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;
-    };
-    const semLabel=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
-    const semanas={};
+    const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
+    let keyFn,labelFn,bsubTxt,maxTicks;
+    if(periodDays<=14){
+      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
+      bsubTxt='evolução diária Meta'; maxTicks=14;
+    } else if(periodDays<=120){
+      keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
+      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
+      bsubTxt='evolução semanal Meta'; maxTicks=16;
+    } else {
+      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
+      bsubTxt='evolução mensal Meta'; maxTicks=18;
+    }
+    const bsubEl=document.getElementById('mk-invest-bsub');
+    if(bsubEl) bsubEl.textContent=bsubTxt;
+    const buckets={};
     ads.forEach(r=>{
       const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
       if(!d) return;
-      const wk=semKey(d);
-      if(!semanas[wk]) semanas[wk]={invest:0,leads:0};
-      semanas[wk].invest+=parseADSBRL(r);
+      const k=keyFn(d);
+      if(!buckets[k]) buckets[k]={invest:0,leads:0};
+      buckets[k].invest+=parseADSBRL(r);
       const l=parseInt(r['Resultados']||'0');
-      if(!isNaN(l)) semanas[wk].leads+=l;
+      if(!isNaN(l)) buckets[k].leads+=l;
     });
-    const wks=Object.keys(semanas).sort();
+    const keys=Object.keys(buckets).sort();
     dc('ch-invest-leads');
     const ctx=document.getElementById('ch-invest-leads');
     if(ctx) charts['ch-invest-leads']=new Chart(ctx,{
       type:'line',
-      data:{labels:wks.map(semLabel),datasets:[
-        {label:'Invest. R$',data:wks.map(k=>Math.round(semanas[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:4,fill:false,yAxisID:'y'},
-        {label:'Leads Meta',data:wks.map(k=>semanas[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.1)',tension:0.3,pointRadius:4,fill:false,yAxisID:'y1'},
+      data:{labels:keys.map(labelFn),datasets:[
+        {label:'Invest. R$',data:keys.map(k=>Math.round(buckets[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y'},
+        {label:'Leads Meta',data:keys.map(k=>buckets[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y1'},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,
         plugins:{legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8}}},
         scales:{
-          x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}}},
+          x:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9},maxTicksLimit:maxTicks}},
           y:{grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#C8941A',font:{size:9}},position:'left',beginAtZero:true},
           y1:{grid:{display:false},ticks:{color:'#5B7FA6',font:{size:9}},position:'right',beginAtZero:true},
         }
