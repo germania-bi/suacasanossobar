@@ -1746,13 +1746,19 @@ function renderMarketing(rd,ads){
     backgroundColor:diaCount.map(v=>v===maxDia&&maxDia>0?'#C92B1E':'rgba(201,43,30,0.35)'),borderWidth:0
   }]);
 
-  // Investimento vs Leads semanal
+  // Investimento vs Leads semanal — S1=1-9, S2=10-16, S3=17-23, S4=24-fim
   if(ads.length){
+    const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const semKey=d=>{
+      const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';
+      return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;
+    };
+    const semLabel=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
     const semanas={};
     ads.forEach(r=>{
       const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
       if(!d) return;
-      const wk=fmt(new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay()));
+      const wk=semKey(d);
       if(!semanas[wk]) semanas[wk]={invest:0,leads:0};
       semanas[wk].invest+=parseADSBRL(r);
       const l=parseInt(r['Resultados']||'0');
@@ -1763,7 +1769,7 @@ function renderMarketing(rd,ads){
     const ctx=document.getElementById('ch-invest-leads');
     if(ctx) charts['ch-invest-leads']=new Chart(ctx,{
       type:'line',
-      data:{labels:wks.map(k=>k.slice(5)),datasets:[
+      data:{labels:wks.map(semLabel),datasets:[
         {label:'Invest. R$',data:wks.map(k=>Math.round(semanas[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y'},
         {label:'Leads Meta',data:wks.map(k=>semanas[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y1'},
       ]},
