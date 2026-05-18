@@ -833,6 +833,73 @@ const CIDADES_SP={
   'Hortolândia':            {lat:-22.8578,lon:-47.2203},
   'Jacareí':                {lat:-23.2997,lon:-45.9656},
   'São José do Rio Pardo':  {lat:-21.5939,lon:-46.8903},
+  // Grande SP / ABC / EMTU
+  'Barueri':                {lat:-23.5114,lon:-46.8756},
+  'Taboão da Serra':        {lat:-23.6083,lon:-46.7583},
+  'Embu das Artes':         {lat:-23.6481,lon:-46.8517},
+  'Embu-Guaçu':            {lat:-23.8328,lon:-46.8103},
+  'São Caetano do Sul':     {lat:-23.6214,lon:-46.5578},
+  'Ribeirão Pires':         {lat:-23.7108,lon:-46.4139},
+  'Rio Grande da Serra':    {lat:-23.7433,lon:-46.3969},
+  'Ferraz de Vasconcelos':  {lat:-23.5408,lon:-46.3686},
+  'Poá':                    {lat:-23.5269,lon:-46.3436},
+  'Arujá':                  {lat:-23.3958,lon:-46.3197},
+  'Itapevi':                {lat:-23.5486,lon:-47.0664},
+  'Jandira':                {lat:-23.5283,lon:-46.9028},
+  'Mairiporã':              {lat:-23.3178,lon:-46.5875},
+  'Caieiras':               {lat:-23.3642,lon:-46.7414},
+  'Francisco Morato':       {lat:-23.2817,lon:-46.7436},
+  'Franco da Rocha':        {lat:-23.3239,lon:-46.7236},
+  'Itapecerica da Serra':   {lat:-23.7175,lon:-46.8486},
+  // Interior Centro-Oeste / Campinas
+  'Sumaré':                 {lat:-22.8231,lon:-47.2669},
+  'Nova Odessa':            {lat:-22.7783,lon:-47.2958},
+  'Cosmópolis':             {lat:-22.6461,lon:-47.1964},
+  'Artur Nogueira':         {lat:-22.5733,lon:-47.1722},
+  'Engenheiro Coelho':      {lat:-22.4883,lon:-47.2153},
+  'Monte Mor':              {lat:-22.9469,lon:-47.3172},
+  'Pedreira':               {lat:-22.7425,lon:-46.9022},
+  'Amparo':                 {lat:-22.7053,lon:-46.7711},
+  'Bragança Paulista':      {lat:-22.9542,lon:-46.5417},
+  'Jarinu':                 {lat:-23.1019,lon:-46.7281},
+  'Campo Limpo Paulista':   {lat:-23.2067,lon:-46.7878},
+  // Interior Norte / Vale do Paraíba
+  'Pindamonhangaba':        {lat:-22.9228,lon:-45.4614},
+  'Caçapava':               {lat:-23.1008,lon:-45.7075},
+  'Tremembé':               {lat:-22.9631,lon:-45.5419},
+  'Guaratinguetá':          {lat:-22.8156,lon:-45.1886},
+  'Lorena':                 {lat:-22.7319,lon:-45.1236},
+  'Cruzeiro':               {lat:-22.5778,lon:-44.9589},
+  'São Sebastião':          {lat:-23.8024,lon:-45.4061},
+  'Caraguatatuba':          {lat:-23.6236,lon:-45.4128},
+  'Ubatuba':                {lat:-23.4336,lon:-45.0728},
+  'Ilhabela':               {lat:-23.7786,lon:-45.3572},
+  // Interior Sul / Litoral
+  'Itanhaém':               {lat:-24.1833,lon:-46.7889},
+  'Mongaguá':               {lat:-24.0867,lon:-46.6231},
+  'Peruíbe':                {lat:-24.3192,lon:-47.0058},
+  'Registro':               {lat:-24.4883,lon:-47.8439},
+  'Iguape':                 {lat:-24.7081,lon:-47.5556},
+  // Interior Oeste / Centro
+  'Botucatu':               {lat:-22.8869,lon:-48.4447},
+  'Lins':                   {lat:-21.6775,lon:-49.7453},
+  'Assis':                  {lat:-22.6603,lon:-50.4122},
+  'Ourinhos':               {lat:-22.9789,lon:-49.8706},
+  'Tupã':                   {lat:-21.9361,lon:-50.5092},
+  'Birigui':                {lat:-21.2883,lon:-50.3397},
+  'Catanduva':              {lat:-21.1378,lon:-48.9736},
+  'Votuporanga':            {lat:-20.4228,lon:-49.9722},
+  'Mirassol':               {lat:-20.8192,lon:-49.5183},
+  'Fernandópolis':          {lat:-20.2836,lon:-50.2428},
+  'Penápolis':              {lat:-21.4175,lon:-50.0789},
+  'Andradina':              {lat:-20.8972,lon:-51.3781},
+  'Presidente Venceslau':   {lat:-21.8758,lon:-51.8436},
+  // Outros estados (clientes podem ser de fora de SP)
+  'Rio de Janeiro':         {lat:-22.9068,lon:-43.1729},
+  'Belo Horizonte':         {lat:-19.9167,lon:-43.9333},
+  'Curitiba':               {lat:-25.4284,lon:-49.2733},
+  'Goiânia':                {lat:-16.6864,lon:-49.2643},
+  'Brasília':               {lat:-15.7801,lon:-47.9292},
 };
 
 function normCidade(s){
@@ -884,7 +951,9 @@ function renderMapaSP(ganho){
   }
   // bsub resumo
   const sub=document.getElementById('vg-mapa-sub');
-  if(sub) sub.textContent=Object.keys(cityData).length+' cidades · '+ganho.length+' venda'+(ganho.length!==1?'s':'');
+  const semLoc=ganho.filter(r=>!resolveCity((r['Unidades de atendimento']||'').trim())).length;
+  const semLocTxt=semLoc>0?` · ${semLoc} sem localização`:'';
+  if(sub) sub.textContent=Object.keys(cityData).length+' cidades · '+ganho.length+' venda'+(ganho.length!==1?'s':'')+semLocTxt;
   if(!_mapaLeaflet){
     el.innerHTML='';
     try{
@@ -1009,11 +1078,16 @@ function renderVisaoGeral(rd,ez,ads){
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const vendLoja=ganho.filter(r=>isLoja(r));
   const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-  const computeFatAll=(from,to)=>rawRD.filter(r=>{
-    if(estadoNorm(r)!=='Ganho') return false;
-    const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
-    return d&&(!from||d>=from)&&(!to||d<=to);
-  }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
+  // fatTotal: soma de TODAS as vendas no período (Germania + Loja), ignora filtro de canal
+  const computeFatAll=(from,to)=>{
+    const canal=filtroCanal();
+    return rawRD.filter(r=>{
+      if(estadoNorm(r)!=='Ganho') return false;
+      const dC=parseDate(r['Data de criação']),dF=parseDate(r['Data de fechamento']);
+      const d=dC||dF;
+      return d&&(!from||d>=from)&&(!to||d<=to);
+    }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
+  };
   const fatTotal=computeFatAll(dateFrom,dateTo);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
