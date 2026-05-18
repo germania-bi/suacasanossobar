@@ -744,7 +744,7 @@ function computeVG(from,to){
   const ganho=rdSlice.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const vendLoja=ganho.filter(r=>isLoja(r));
-  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const decididas=rdSlice.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
   const ticket=vendGerm.length?fat/vendGerm.length:0;
@@ -846,9 +846,15 @@ Object.entries(CIDADES_SP).forEach(([c,coord])=>{_cidadesNorm[normCidade(c)]={ci
 
 function resolveCity(raw){
   if(!raw) return null;
-  if(CIDADES_SP[raw.trim()]) return raw.trim();
-  const norm=_cidadesNorm[normCidade(raw)];
-  return norm?norm.cidade:null;
+  const trimmed=raw.trim();
+  if(CIDADES_SP[trimmed]) return trimmed;
+  const norm=_cidadesNorm[normCidade(trimmed)];
+  if(norm) return norm.cidade;
+  for(const part of trimmed.split(/[-,\/]/)){
+    const n=_cidadesNorm[normCidade(part.trim())];
+    if(n) return n.cidade;
+  }
+  return null;
 }
 
 let _mapaLeaflet=null, _mapaLayers=[], _mapaControl=null;
@@ -864,8 +870,7 @@ function renderMapaSP(ganho){
     const canon=resolveCity(raw)||raw;
     if(!cityData[canon]) cityData[canon]={n:0,fat:0,modelos:{}};
     cityData[canon].n++;
-    const v=parseFloat((r['Valor Único']||'0').replace(',','.'))||0;
-    cityData[canon].fat+=v;
+    cityData[canon].fat+=parseBRL(r['Valor Único']);
     const prod=r['Produtos']||'';
     const mod=prod.includes('Master')?'Master':prod.includes('Mini')?'Mini':'—';
     cityData[canon].modelos[mod]=(cityData[canon].modelos[mod]||0)+1;
@@ -984,7 +989,7 @@ function renderHeader(rd){
   const rdC=filterRDCriacao();
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
-  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
   const ticket=vendGerm.length?fat/vendGerm.length:0;
@@ -1003,11 +1008,12 @@ function renderVisaoGeral(rd,ez,ads){
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const vendLoja=ganho.filter(r=>isLoja(r));
-  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const computeFatAll=(from,to)=>rawRD.filter(r=>{
-    const d=parseDate(r['Data de criação'])||parseDate(r['Data de fechamento']);
-    return d&&(!from||d>=from)&&(!to||d<=to)&&estadoNorm(r)==='Ganho';
-  }).reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    if(estadoNorm(r)!=='Ganho') return false;
+    const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
+    return d&&(!from||d>=from)&&(!to||d<=to);
+  }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
   const fatTotal=computeFatAll(dateFrom,dateTo);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
@@ -1198,11 +1204,12 @@ function renderVisaoGeral(rd,ez,ads){
 
   // Top cidades — mapa SP (todas as vendas do período, ignora filtro de canal)
   const ganhoMap=rawRD.filter(r=>{
-    const d=parseDate(r['Data de criação'])||parseDate(r['Data de fechamento']);
+    if(estadoNorm(r)!=='Ganho') return false;
+    const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
     if(!d) return false;
     if(dateFrom&&d<dateFrom) return false;
     if(dateTo&&d>dateTo) return false;
-    return estadoNorm(r)==='Ganho';
+    return true;
   });
   renderMapaSP(ganhoMap);
 
@@ -1340,7 +1347,7 @@ function renderProduto(rd){
   const mini=produtos.filter(p=>p.modelo==='Mini').length;
   const v110=produtos.filter(p=>p.voltagem==='110v').length;
   const v220=produtos.filter(p=>p.voltagem==='220v').length;
-  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const rdC=filterRDCriacao();
   const decididas=rdC.filter(r=>!isLoja(r)&&(estadoNorm(r)==='Ganho'||(estadoNorm(r)==='Perdido'&&(r['Motivo de Perda']||'').trim()!=='Não conseguiu contato')));
   const winRate=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
@@ -1359,7 +1366,7 @@ function renderProduto(rd){
     const pMaster=pProd.filter(p=>p.modelo==='Master').length;
     const pMini=pProd.filter(p=>p.modelo==='Mini').length;
     const pVendGerm=pGanho.filter(r=>!isLoja(r));
-    const pFat=pVendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pFat=pVendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
     const pRdC=rawRD.filter(r=>{if(canal==='germania'&&isLoja(r))return false;if(canal==='loja'&&!isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pDecididas=pRdC.filter(r=>!isLoja(r)&&(estadoNorm(r)==='Ganho'||(estadoNorm(r)==='Perdido'&&(r['Motivo de Perda']||'').trim()!=='Não conseguiu contato')));
     const pWinRate=pDecididas.length?Math.round(pVendGerm.length/pDecididas.length*100):0;
@@ -1436,7 +1443,7 @@ function renderProduto(rd){
 function renderPerfil(rd){
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
-  const fat=vendGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const ticket=vendGerm.length?fat/vendGerm.length:0;
   const topProduto=freq(vendGerm,'Produtos')[0]?.[0]||'';
   const topModelo=parseProduto(topProduto).modelo||'--';
@@ -1653,7 +1660,7 @@ function renderAtendimento(ez,rd){
 function renderMarketing(rd,ads){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
-  const fat=ganhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+  const fat=ganhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const investTotal=ads.reduce((s,r)=>s+parseADSBRL(r),0);
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
@@ -1672,7 +1679,7 @@ function renderMarketing(rd,ads){
   if(prev){
     const pRdC=rawRD.filter(r=>{if(isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
-    const pFat=pGanhoGerm.reduce((s,r)=>{const v=parseFloat((r['Valor Único']||'0').replace(',','.'));return s+(isNaN(v)?0:v);},0);
+    const pFat=pGanhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
     const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
     const pInvest=pAds.reduce((s,r)=>s+parseADSBRL(r),0);
     const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
