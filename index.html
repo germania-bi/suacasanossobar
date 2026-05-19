@@ -274,7 +274,7 @@
     <div class="mkpi"><div class="mkpi-v"        id="mk-leads-ads">--</div><div class="mkpi-l">Leads (Canal)</div><div class="mkpi-d" id="mk-leads-ads-d"></div></div>
     <div class="mkpi"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal</div><div class="mkpi-d" id="mk-vendas-ads-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">CPL <span class="tip" data-tip="Custo por Lead — investimento Meta dividido pelo número de resultados gerados pelos anúncios.">i</span></div><div class="mkpi-d" id="mk-cpl-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="mk-conv-ads">--</div><div class="mkpi-l">Conversão</div><div class="mkpi-d" id="mk-conv-ads-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-cac">--</div><div class="mkpi-l">CAC <span class="tip" data-tip="Custo de Aquisição de Cliente — investimento Meta dividido pelas vendas fechadas pelo canal Ads (Germania). Exclui vendas de loja.">i</span></div><div class="mkpi-d" id="mk-cac-d"></div></div>
     <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
   </div>
 
@@ -1746,13 +1746,13 @@ function renderMarketing(rd,ads){
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
-  const conv=rdC.length?Math.round(ganhoGerm.length/rdC.length*100):0;
+  const cac=ganhoGerm.length?investTotal/ganhoGerm.length:0;
 
   document.getElementById('mk-invest').textContent=fmtBRLk(investTotal)||'--';
   document.getElementById('mk-leads-ads').textContent=leadsAds||rdC.length;
   document.getElementById('mk-vendas-ads').textContent=ganhoGerm.length;
   document.getElementById('mk-cpl').textContent=cpl?fmtBRLk(cpl):'--';
-  document.getElementById('mk-conv-ads').textContent=conv+'%';
+  document.getElementById('mk-cac').textContent=cac?fmtBRL(cac):'--';
   document.getElementById('mk-roi').textContent=roi?roi.toFixed(1)+'x':'--';
 
   // Deltas KPIs Marketing
@@ -1766,12 +1766,12 @@ function renderMarketing(rd,ads){
     const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
     const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
     const pRoi=pInvest?pFat/pInvest:0;
-    const pConv=pRdC.length?Math.round(pGanhoGerm.length/pRdC.length*100):0;
+    const pCac=pGanhoGerm.length?pInvest/pGanhoGerm.length:0;
     setDelta('mk-invest-d',investTotal,pInvest,false,true,dlbl);
     setDelta('mk-leads-ads-d',leadsAds||rdC.length,pLeadsAds||pRdC.length,false,false,dlbl);
     setDelta('mk-vendas-ads-d',ganhoGerm.length,pGanhoGerm.length,false,false,dlbl);
     setDelta('mk-cpl-d',cpl||null,pCpl||null,false,true,dlbl);
-    setDelta('mk-conv-ads-d',conv,pConv,true,false,dlbl);
+    setDelta('mk-cac-d',cac||null,pCac||null,false,true,dlbl);
     setDelta('mk-roi-d',roi?Math.round(roi*10)/10:null,pRoi?Math.round(pRoi*10)/10:null,false,false,dlbl);
   }
 
