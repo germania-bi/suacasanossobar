@@ -277,31 +277,12 @@
     <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
   </div>
 
-  <!-- Linha 2: Distribuição por Canal + Funil por Origem -->
+  <!-- Linha 2: Distribuição por Canal + Canais de Aquisição -->
   <div class="g2">
     <div class="block">
       <div class="bhead"><div class="c-title pill-gray">Distribuição por Canal</div><div class="bsub">leads · vendas · conversão</div></div>
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
-    <div class="block">
-      <div class="bhead"><div class="c-title pill-gray">Funil por Origem</div></div>
-      <div class="bbody" style="padding:6px 16px 14px">
-        <table class="stbl">
-          <thead><tr>
-            <th>Origem</th>
-            <th style="text-align:center">Leads</th>
-            <th style="text-align:center">Vendas</th>
-            <th style="text-align:center">Perdas</th>
-            <th style="text-align:right">Conv.</th>
-          </tr></thead>
-          <tbody id="mk-funil-origem-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Linha 3: Canais de Aquisição + Melhor Dia da Semana -->
-  <div class="g2">
     <div class="block" style="display:flex;flex-direction:column">
       <div class="bhead"><div class="c-title pill-gray">Canais de Aquisição</div><div class="bsub">leads · vendas · conversão por origem</div></div>
       <div class="bbody" style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">
@@ -336,10 +317,12 @@
         </div>
       </div>
     </div>
-    <div class="block">
-      <div class="bhead"><div class="c-title pill-gray">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
-      <div class="bbody" style="padding-top:12px;padding-bottom:8px"><div style="position:relative;height:200px"><canvas id="ch-diasemana"></canvas></div></div>
-    </div>
+  </div>
+
+  <!-- Linha 3: Melhor Dia da Semana (full width) -->
+  <div class="block">
+    <div class="bhead"><div class="c-title pill-gray">Melhor Dia da Semana</div><div class="bsub">leads recebidos</div></div>
+    <div class="bbody" style="padding-top:12px;padding-bottom:16px"><div style="position:relative;height:220px"><canvas id="ch-diasemana"></canvas></div></div>
   </div>
 
   <!-- Linha 4: Investimento vs Leads -->
@@ -353,7 +336,7 @@
 </main>
 
 <footer class="footer">
-  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span> · <span style="opacity:.4;font-size:10px">v19mai-layout</span>
+  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span> · <span style="opacity:.4;font-size:10px">v19mai-layout2</span>
 </footer>
 
 <script>
