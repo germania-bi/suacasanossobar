@@ -339,7 +339,7 @@
   <!-- Linha 4: Distribuição por Canal + Melhor Dia da Semana -->
   <div class="g2">
     <div class="block">
-      <div class="bhead"><div class="c-title pill-gray">Distribuição por Canal</div><div class="bsub">leads por origem</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Distribuição por Canal</div><div class="bsub">leads · vendas · conversão</div></div>
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
     <div class="block">
@@ -353,7 +353,7 @@
 </main>
 
 <footer class="footer">
-  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span> · <span style="opacity:.4;font-size:10px">v19mai-fat</span>
+  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span> · <span style="opacity:.4;font-size:10px">v19mai-canal</span>
 </footer>
 
 <script>
@@ -1820,29 +1820,31 @@ function renderMarketing(rd,ads){
     const fPct=Math.round(formS.leads/totL*100);
     const oPct=100-wPct-fPct;
     canalEl.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
         <span style="font-size:11px;color:var(--txt-faint);text-transform:uppercase;letter-spacing:.07em">total de leads</span>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--txt)">${realTotL}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--txt);line-height:1">${realTotL}</span>
       </div>
-      <div class="dist-bar" style="height:10px;margin-bottom:0">
-        <div style="width:${wPct}%;background:#1E7A42;height:100%"></div>
-        <div style="width:${fPct}%;background:#5B7FA6;height:100%"></div>
-        <div style="width:${oPct}%;background:#A89870;height:100%"></div>
+      <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:18px">
+        <div style="width:${wPct}%;background:#1E7A42"></div>
+        <div style="width:${fPct}%;background:#5B7FA6"></div>
+        <div style="flex:1;background:#A89870"></div>
       </div>
-      <div class="dist-below">
-        <div class="dist-seg-lbl" style="width:${wPct}%">
-          <div class="dist-seg-count"><span class="dist-n">${wppS.leads}</span><span class="dist-pct">${wPct}%</span></div>
-          <div class="dist-seg-name" style="color:#1E7A42">WPP Button</div>
-        </div>
-        <div class="dist-seg-lbl" style="width:${fPct}%">
-          <div class="dist-seg-count"><span class="dist-n">${formS.leads}</span><span class="dist-pct">${fPct}%</span></div>
-          <div class="dist-seg-name" style="color:#5B7FA6">Form Direto</div>
-        </div>
-        <div class="dist-seg-lbl" style="width:${oPct}%">
-          <div class="dist-seg-count"><span class="dist-n">${orgS.leads}</span><span class="dist-pct">${oPct}%</span></div>
-          <div class="dist-seg-name" style="color:#A89870">Orgânico</div>
-        </div>
-      </div>`;
+      ${[['WhatsApp',wppS,'#1E7A42',wPct],['Formulário LP',formS,'#5B7FA6',fPct],['Orgânico',orgS,'#A89870',oPct]].map(([name,s,cor,pct])=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(255,200,120,0.07)">
+          <div style="width:3px;height:36px;border-radius:2px;background:${cor};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;color:var(--txt);font-weight:500">${name}</div>
+            <div style="font-size:11px;color:var(--txt-faint);margin-top:2px">${pct}% dos leads</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--txt);line-height:1">${s.leads}</div>
+            <div style="font-size:10px;color:var(--txt-faint)">leads</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;border-left:1px solid rgba(255,200,120,0.1);padding-left:12px">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:${cor};line-height:1">${s.vendas}</div>
+            <div style="font-size:10px;color:var(--txt-faint)">${s.conv}% conv</div>
+          </div>
+        </div>`).join('')}`;
   }
 
   // Melhor dia da semana
@@ -1870,10 +1872,10 @@ function renderMarketing(rd,ads){
     const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
     let keyFn,labelFn,bsubTxt,maxTicks;
-    if(periodDays<=14){
+    if(periodDays<=35){
       keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
-      bsubTxt='evolução diária Meta'; maxTicks=14;
+      bsubTxt='evolução diária Meta'; maxTicks=35;
     } else if(periodDays<=120){
       keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
       labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
