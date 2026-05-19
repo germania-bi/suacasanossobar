@@ -1770,7 +1770,7 @@ function renderMarketing(rd,ads){
   }
 
   function canalStats(canal){
-    const leads=rdC.filter(r=>parseCampanha(r['Campanha'])===canal);
+    const leads=rdC.filter(r=>!isLoja(r)&&parseCampanha(r['Campanha'])===canal);
     const vendas=leads.filter(r=>estadoNorm(r)==='Ganho').length;
     const perdas=leads.filter(r=>estadoNorm(r)==='Perdido').length;
     return {leads:leads.length,vendas,perdas,conv:leads.length?Math.round(vendas/leads.length*100):0};
