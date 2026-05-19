@@ -353,7 +353,7 @@
 </main>
 
 <footer class="footer">
-  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span>
+  Germânia Cervejaria · SCNB Dashboard · <span id="ft-year"></span> · <span style="opacity:.4;font-size:10px">v19mai-fat</span>
 </footer>
 
 <script>
@@ -824,6 +824,7 @@ const CIDADES_SP={
   'Itatiba':                {lat:-22.9997,lon:-46.8386},
   'Salto':                  {lat:-23.2011,lon:-47.2878},
   'Taquarituba':            {lat:-23.5294,lon:-49.2428},
+  'Passos':                 {lat:-20.7189,lon:-46.6097},
   'Indaiatuba':             {lat:-23.0900,lon:-47.2194},
   'Atibaia':                {lat:-23.1172,lon:-46.5506},
   'Valinhos':               {lat:-22.9728,lon:-46.9961},
@@ -913,8 +914,11 @@ Object.entries(CIDADES_SP).forEach(([c,coord])=>{_cidadesNorm[normCidade(c)]={ci
 
 function resolveCity(raw){
   if(!raw) return null;
-  const trimmed=raw.trim();
-  if(CIDADES_SP[trimmed]) return trimmed;
+  // Strip invisible Unicode chars (BOM, NBSP, zero-width spaces, etc.)
+  const clean=raw.replace(/[﻿ ​‌‍ ⁠�]/g,'').trim();
+  if(!clean) return null;
+  if(CIDADES_SP[clean]) return clean;
+  const trimmed=clean;
   // Tenta normalização completa
   const norm=_cidadesNorm[normCidade(trimmed)];
   if(norm) return norm.cidade;
@@ -1069,12 +1073,17 @@ function renderHeader(rd){
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
+  const fatHeader=rawRD.filter(r=>{
+    if(estadoNorm(r)!=='Ganho') return false;
+    const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
+    return d&&(!dateFrom||d>=dateFrom)&&(!dateTo||d<=dateTo);
+  }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
   const conv=decididas.length?Math.round(vendGerm.length/decididas.length*100):0;
   const ticket=vendGerm.length?fat/vendGerm.length:0;
   document.getElementById('hkv-vendas').textContent=ganho.length;
   document.getElementById('hks-vendas').textContent=ganho.length===1?'venda fechada':'vendas fechadas';
-  document.getElementById('hkv-fat').textContent=fmtBRLk(fat);
+  document.getElementById('hkv-fat').textContent=fmtBRLk(fatHeader);
   document.getElementById('hkv-conv').textContent=conv+'%';
   document.getElementById('hks-conv').textContent=vendGerm.length+' de '+decididas.length+' decididas';
 }
@@ -1089,11 +1098,11 @@ function renderVisaoGeral(rd,ez,ads){
   const vendLoja=ganho.filter(r=>isLoja(r));
   const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   // fatTotal: faturamento Canal Germânia, sempre via rawRD (ignora filtro de canal)
-  // → mostra 32k mesmo quando filtro de canal = Loja
+  // usa criação||fechamento igual ao filterRD — garante mesmos 8 deals que vendGerm
   const computeFatAll=(from,to)=>rawRD.filter(r=>{
-    if(isLoja(r)||estadoNorm(r)!=='Ganho') return false;
-    const dC=parseDate(r['Data de criação']);
-    return dC&&(!from||dC>=from)&&(!to||dC<=to);
+    if(estadoNorm(r)!=='Ganho') return false;
+    const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
+    return d&&(!from||d>=from)&&(!to||d<=to);
   }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
   const fatTotal=computeFatAll(dateFrom,dateTo);
   const decididas=rd.filter(r=>estadoNorm(r)!=='Em Andamento');
