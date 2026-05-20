@@ -72,7 +72,6 @@
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
     <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
   </div>
-  <button id="btnLimpar" onclick="limparFiltro()" style="display:none;background:transparent;border:0.8px solid var(--s-yellow);color:var(--s-yellow);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:4px;cursor:pointer;white-space:nowrap">× Limpar</button>
   <div class="f-pipe"></div>
   <div class="f-group">
     <span class="f-lbl">Canal</span>
@@ -83,6 +82,7 @@
     </div>
     <input type="hidden" id="filtroCanal" value="todos">
   </div>
+  <button id="btnLimpar" onclick="limparFiltro()" style="display:none;background:transparent;border:0.8px solid var(--s-yellow);color:var(--s-yellow);font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:4px;cursor:pointer;white-space:nowrap">× Limpar</button>
   <div class="sync-status" id="syncStatus" style="margin-left:auto">
     <div class="sync-dot"></div>
     <span id="syncMsg">Aguardando</span>
