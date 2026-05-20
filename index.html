@@ -71,6 +71,7 @@
     <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
     <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
+    <button class="btn-sh" id="btnLimpar" onclick="limparFiltro()" style="opacity:0.55;margin-left:4px">× Limpar</button>
   </div>
   <div class="f-pipe"></div>
   <div class="f-group">
@@ -273,7 +274,7 @@
     <div class="mkpi"><div class="mkpi-v gold"  id="mk-invest">--</div><div class="mkpi-l">Investimento Meta</div><div class="mkpi-d" id="mk-invest-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="mk-leads-ads">--</div><div class="mkpi-l">Leads (Canal)</div><div class="mkpi-d" id="mk-leads-ads-d"></div></div>
     <div class="mkpi"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal</div><div class="mkpi-d" id="mk-vendas-ads-d"></div></div>
-    <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">CPL <span class="tip" data-tip="Custo por Lead — investimento Meta dividido pelo número de resultados gerados pelos anúncios.">i</span></div><div class="mkpi-d" id="mk-cpl-d"></div></div>
+    <div class="mkpi"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">Custo por Lead <span class="tip" data-tip="Investimento Meta dividido pelo número de resultados gerados pelos anúncios.">i</span></div><div class="mkpi-d" id="mk-cpl-d"></div></div>
     <div class="mkpi"><div class="mkpi-v"        id="mk-cac">--</div><div class="mkpi-l">CAC <span class="tip" data-tip="Custo de Aquisição de Cliente — investimento Meta dividido pelas vendas fechadas pelo canal Ads (Germania). Exclui vendas de loja.">i</span></div><div class="mkpi-d" id="mk-cac-d"></div></div>
     <div class="mkpi"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
   </div>
@@ -690,6 +691,14 @@ function setShortcut(type,el){
   else if(type==='all'){f=new Date(2024,0,1);t=new Date(2030,11,31);}
   fpFrom?.setDate(f,false); fpTo?.setDate(t,false);
   dateFrom=f; dateTo=t; renderAll();
+}
+function limparFiltro(){
+  const mesBtn=document.querySelector('[onclick*="thismonth"]');
+  if(mesBtn) setShortcut('thismonth',mesBtn);
+  document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
+  const todosBtn=document.querySelector('#canalChips .btn-sh');
+  if(todosBtn){todosBtn.classList.add('active');document.getElementById('filtroCanal').value='todos';}
+  renderAll();
 }
 function applyFilter(){
   const df=document.getElementById('dateFrom').value;
