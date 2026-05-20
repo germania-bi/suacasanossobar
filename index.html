@@ -293,7 +293,7 @@
     </div>
     <div class="block" style="display:flex;flex-direction:column">
       <div class="bhead"><div class="c-title pill-gray">CPL × ROI</div><div class="bsub" id="mk-crm-invest-sub">eficiência ao longo do tempo</div></div>
-      <div class="bbody" style="padding-top:12px;padding-bottom:8px"><div style="position:relative;height:210px"><canvas id="ch-crm-invest"></canvas></div></div>
+      <div class="bbody" style="display:flex;flex-direction:column;flex:1;padding:12px 0 8px"><div style="position:relative;flex:1;min-height:0"><canvas id="ch-crm-invest"></canvas></div></div>
     </div>
   </div>
 
@@ -1897,9 +1897,11 @@ function renderMarketing(rd,ads){
   const bestDia=diaCount.indexOf(maxDia);
   const diaEl=document.getElementById('ch-diasemana');
   if(diaEl){
+    const BAR_MAX=120;
     diaEl.innerHTML=diasSemana.map((nome,i)=>{
       const v=diaCount[i];
       const pct=Math.round(v/maxDia*100);
+      const barPx=Math.max(Math.round(pct/100*BAR_MAX),v>0?4:0);
       const share=Math.round(v/totalDia*100);
       const isBest=i===bestDia;
       const cor=isBest?'var(--gold)':'rgba(30,122,66,0.55)';
@@ -1907,8 +1909,8 @@ function renderMarketing(rd,ads){
       return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:6px">
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:${isBest?'22px':'16px'};font-weight:${isBest?'800':'600'};color:${txtCor};line-height:1">${v}</div>
         <div style="font-size:9px;color:${isBest?'var(--gold)':'var(--txt-faint)'};letter-spacing:.04em">${share}%</div>
-        <div style="width:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:60px">
-          <div style="width:100%;background:${cor};border-radius:4px 4px 2px 2px;height:${Math.max(pct,4)}%;${isBest?'box-shadow:0 0 12px rgba(200,148,26,0.3)':''}"></div>
+        <div style="width:100%;height:${BAR_MAX}px;display:flex;flex-direction:column;justify-content:flex-end">
+          <div style="width:100%;background:${cor};border-radius:4px 4px 2px 2px;height:${barPx}px;${isBest?'box-shadow:0 0 12px rgba(200,148,26,0.3)':''}"></div>
         </div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:${isBest?'13px':'11px'};font-weight:${isBest?'700':'500'};color:${txtCor};text-transform:uppercase;letter-spacing:.06em">${nome}</div>
         ${isBest?`<div style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></div>`:`<div style="height:6px"></div>`}
