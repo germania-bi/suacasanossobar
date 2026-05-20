@@ -1791,20 +1791,18 @@ function renderMarketing(rd,ads){
   const cidadesEl=document.getElementById('mk-top-cidades');
   if(cidadesEl) cidadesEl.innerHTML=topCidades.map(([cidade,d],i)=>{
     const pct=Math.round(d.leads/maxLeads*100);
-    const conv=d.leads?Math.round(d.vendas/d.leads*100):0;
     const rc=rankCors[i]||'var(--txt-faint)';
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i>0?'border-top:1px solid rgba(255,200,120,0.07)':''}">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:${rc};width:18px;text-align:center;flex-shrink:0;line-height:1">${i+1}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${cidade}</span>
+          <span style="font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${cidade}</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--txt);line-height:1;margin-left:6px;flex-shrink:0">${d.leads} <span style="font-size:10px;font-weight:400;color:var(--txt-faint)">leads</span></span>
         </div>
         <div style="height:3px;background:rgba(255,200,120,0.08);border-radius:2px">
           <div style="height:3px;width:${pct}%;background:var(--gold);border-radius:2px"></div>
         </div>
       </div>
-      ${conv>0?`<span class="conv-badge ${conv>=15?'hi':conv>=5?'mid':'lo'}" style="flex-shrink:0">${conv}%</span>`:`<span style="width:34px"></span>`}
     </div>`;
   }).join('');
 
