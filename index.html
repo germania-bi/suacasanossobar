@@ -292,8 +292,8 @@
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
     <div class="block" style="display:flex;flex-direction:column">
-      <div class="bhead"><div class="c-title pill-gray">Top Cidades</div><div class="bsub">leads · canal Ads</div></div>
-      <div class="bbody" style="flex:1;display:flex;flex-direction:column;justify-content:center"><div id="mk-top-cidades"></div></div>
+      <div class="bhead"><div class="c-title pill-gray">Leads CRM × Investimento</div><div class="bsub" id="mk-crm-invest-sub">evolução semanal</div></div>
+      <div class="bbody" style="padding-top:12px;padding-bottom:8px"><div style="position:relative;height:210px"><canvas id="ch-crm-invest"></canvas></div></div>
     </div>
   </div>
 
@@ -1776,35 +1776,63 @@ function renderMarketing(rd,ads){
     const convEl=document.getElementById('ccf-'+pfx+'-conv');
     if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
-  // Top Cidades por leads Ads (Germania = !isLoja)
-  const cidadeMap={};
-  rdC.forEach(r=>{
-    const c=(r['Unidades de atendimento']||'').trim();
-    if(!c) return;
-    if(!cidadeMap[c]) cidadeMap[c]={leads:0,vendas:0};
-    cidadeMap[c].leads++;
-    if(estadoNorm(r)==='Ganho') cidadeMap[c].vendas++;
-  });
-  const topCidades=Object.entries(cidadeMap).sort((a,b)=>b[1].leads-a[1].leads).slice(0,7);
-  const maxLeads=topCidades[0]?.[1].leads||1;
-  const rankCors=['var(--gold)','var(--txt-mid)','#A0784A'];
-  const cidadesEl=document.getElementById('mk-top-cidades');
-  if(cidadesEl) cidadesEl.innerHTML=topCidades.map(([cidade,d],i)=>{
-    const pct=Math.round(d.leads/maxLeads*100);
-    const rc=rankCors[i]||'var(--txt-faint)';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i>0?'border-top:1px solid rgba(255,200,120,0.07)':''}">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:${rc};width:18px;text-align:center;flex-shrink:0;line-height:1">${i+1}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${cidade}</span>
-          <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--txt);line-height:1;margin-left:6px;flex-shrink:0">${d.leads} <span style="font-size:10px;font-weight:400;color:var(--txt-faint)">leads</span></span>
-        </div>
-        <div style="height:3px;background:rgba(255,200,120,0.08);border-radius:2px">
-          <div style="height:3px;width:${pct}%;background:var(--gold);border-radius:2px"></div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  // Leads CRM × Investimento — sparkline compacto
+  if(ads.length){
+    const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
+    let keyFn,labelFn,subTxt,maxTicks;
+    if(periodDays<=35){
+      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
+      subTxt='evolução diária'; maxTicks=35;
+    } else if(periodDays<=120){
+      keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
+      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
+      subTxt='evolução semanal'; maxTicks=16;
+    } else {
+      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
+      subTxt='evolução mensal'; maxTicks=18;
+    }
+    const subEl=document.getElementById('mk-crm-invest-sub');
+    if(subEl) subEl.textContent=subTxt;
+    const bkts={};
+    // Leads CRM (dCria, Germania)
+    rdC.forEach(r=>{
+      const d=parseDate(r['Data de criação']);
+      if(!d) return;
+      const k=keyFn(d);
+      if(!bkts[k]) bkts[k]={leads:0,invest:0};
+      bkts[k].leads++;
+    });
+    // Investimento Meta
+    ads.forEach(r=>{
+      const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
+      if(!d) return;
+      const k=keyFn(d);
+      if(!bkts[k]) bkts[k]={leads:0,invest:0};
+      bkts[k].invest+=parseADSBRL(r);
+    });
+    const keys=Object.keys(bkts).sort();
+    dc('ch-crm-invest');
+    const ctxCI=document.getElementById('ch-crm-invest');
+    if(ctxCI) charts['ch-crm-invest']=new Chart(ctxCI,{
+      type:'line',
+      data:{labels:keys.map(labelFn),datasets:[
+        {label:'Leads CRM',data:keys.map(k=>bkts[k].leads||0),borderColor:'#1E7A42',backgroundColor:'rgba(30,122,66,0.08)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y'},
+        {label:'Invest. R$',data:keys.map(k=>Math.round(bkts[k].invest||0)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.06)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1'},
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8,padding:10}}},
+        scales:{
+          x:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#6B5C40',font:{size:9},maxTicksLimit:maxTicks}},
+          y:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#1E7A42',font:{size:9}},position:'left',beginAtZero:true},
+          y1:{grid:{display:false},ticks:{color:'#C8941A',font:{size:9}},position:'right',beginAtZero:true},
+        }
+      }
+    });
+  }
 
   // Tabela funil por origem
   const tbody=document.getElementById('mk-funil-origem-body');
