@@ -71,7 +71,7 @@
     <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
     <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
-    <button class="btn-sh" id="btnLimpar" onclick="limparFiltro()" style="opacity:0.55;margin-left:4px">× Limpar</button>
+    <button class="btn-sh" id="btnLimpar" onclick="limparFiltro()" style="display:none;margin-left:4px;color:var(--s-yellow);border-color:var(--s-yellow);opacity:0.9">× Limpar</button>
   </div>
   <div class="f-pipe"></div>
   <div class="f-group">
@@ -664,16 +664,17 @@ function initDates(){
   fpFrom=flatpickr('#dateFromWrap',{...cfg,defaultDate:f,
     onOpen(){document.getElementById('dateFromWrap').classList.add('open');},
     onClose(){document.getElementById('dateFromWrap').classList.remove('open');},
-    onChange(d){if(d[0]){dateFrom=d[0];renderAll();}}});
+    onChange(d){if(d[0]){dateFrom=d[0];currentShortcut='custom';updateLimparBtn();renderAll();}}});
   fpTo=flatpickr('#dateToWrap',{...cfg,defaultDate:t,
     onOpen(){document.getElementById('dateToWrap').classList.add('open');},
     onClose(){document.getElementById('dateToWrap').classList.remove('open');},
-    onChange(d){if(d[0]){dateTo=new Date(d[0]);dateTo.setHours(23,59,59);renderAll();}}});
+    onChange(d){if(d[0]){dateTo=new Date(d[0]);dateTo.setHours(23,59,59);currentShortcut='custom';updateLimparBtn();renderAll();}}});
 }
 function setCanal(val,el){
   document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('filtroCanal').value=val;
+  updateLimparBtn();
   renderAll();
 }
 function setShortcut(type,el){
@@ -690,7 +691,13 @@ function setShortcut(type,el){
   else if(type==='quarter'){f=new Date(+n-90*864e5);t=n;}
   else if(type==='all'){f=new Date(2024,0,1);t=new Date(2030,11,31);}
   fpFrom?.setDate(f,false); fpTo?.setDate(t,false);
-  dateFrom=f; dateTo=t; renderAll();
+  dateFrom=f; dateTo=t; updateLimparBtn(); renderAll();
+}
+function updateLimparBtn(){
+  const btn=document.getElementById('btnLimpar');
+  if(!btn) return;
+  const isDefault=currentShortcut==='thismonth'&&filtroCanal()==='todos';
+  btn.style.display=isDefault?'none':'';
 }
 function limparFiltro(){
   const mesBtn=document.querySelector('[onclick*="thismonth"]');
@@ -698,6 +705,7 @@ function limparFiltro(){
   document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
   const todosBtn=document.querySelector('#canalChips .btn-sh');
   if(todosBtn){todosBtn.classList.add('active');document.getElementById('filtroCanal').value='todos';}
+  updateLimparBtn();
   renderAll();
 }
 function applyFilter(){
