@@ -292,7 +292,7 @@
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
     <div class="block" style="display:flex;flex-direction:column">
-      <div class="bhead"><div class="c-title pill-gray">Leads CRM × Investimento</div><div class="bsub" id="mk-crm-invest-sub">evolução semanal</div></div>
+      <div class="bhead"><div class="c-title pill-gray">CPL × ROI</div><div class="bsub" id="mk-crm-invest-sub">eficiência ao longo do tempo</div></div>
       <div class="bbody" style="padding-top:12px;padding-bottom:8px"><div style="position:relative;height:210px"><canvas id="ch-crm-invest"></canvas></div></div>
     </div>
   </div>
@@ -1776,7 +1776,7 @@ function renderMarketing(rd,ads){
     const convEl=document.getElementById('ccf-'+pfx+'-conv');
     if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
-  // Leads CRM × Investimento — sparkline compacto
+  // CPL × ROI — eficiência ao longo do tempo
   if(ads.length){
     const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
@@ -1784,51 +1784,58 @@ function renderMarketing(rd,ads){
     if(periodDays<=35){
       keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
-      subTxt='evolução diária'; maxTicks=35;
+      subTxt='eficiência diária'; maxTicks=35;
     } else if(periodDays<=120){
       keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
       labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
-      subTxt='evolução semanal'; maxTicks=16;
+      subTxt='eficiência semanal'; maxTicks=16;
     } else {
       keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
-      subTxt='evolução mensal'; maxTicks=18;
+      subTxt='eficiência mensal'; maxTicks=18;
     }
     const subEl=document.getElementById('mk-crm-invest-sub');
     if(subEl) subEl.textContent=subTxt;
     const bkts={};
-    // Leads CRM (dCria, Germania)
-    rdC.forEach(r=>{
-      const d=parseDate(r['Data de criação']);
-      if(!d) return;
-      const k=keyFn(d);
-      if(!bkts[k]) bkts[k]={leads:0,invest:0};
-      bkts[k].leads++;
-    });
-    // Investimento Meta
+    // Investimento + leads Meta por período
     ads.forEach(r=>{
       const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
       if(!d) return;
       const k=keyFn(d);
-      if(!bkts[k]) bkts[k]={leads:0,invest:0};
+      if(!bkts[k]) bkts[k]={invest:0,leads:0,fat:0};
       bkts[k].invest+=parseADSBRL(r);
+      const l=parseInt(r['Resultados']||'0');
+      if(!isNaN(l)) bkts[k].leads+=l;
+    });
+    // Faturamento Germania por período (dFech||dCria)
+    rawRD.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r)).forEach(r=>{
+      const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
+      if(!d||!dateFrom||!dateTo||d<dateFrom||d>dateTo) return;
+      const k=keyFn(d);
+      if(!bkts[k]) bkts[k]={invest:0,leads:0,fat:0};
+      bkts[k].fat+=parseBRL(r['Valor Único']);
     });
     const keys=Object.keys(bkts).sort();
+    const cplData=keys.map(k=>bkts[k].leads?Math.round(bkts[k].invest/bkts[k].leads):null);
+    const roiData=keys.map(k=>bkts[k].invest?Math.round(bkts[k].fat/bkts[k].invest*10)/10:null);
     dc('ch-crm-invest');
     const ctxCI=document.getElementById('ch-crm-invest');
     if(ctxCI) charts['ch-crm-invest']=new Chart(ctxCI,{
       type:'line',
       data:{labels:keys.map(labelFn),datasets:[
-        {label:'Leads CRM',data:keys.map(k=>bkts[k].leads||0),borderColor:'#1E7A42',backgroundColor:'rgba(30,122,66,0.08)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y'},
-        {label:'Invest. R$',data:keys.map(k=>Math.round(bkts[k].invest||0)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.06)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1'},
+        {label:'CPL (R$)',data:cplData,borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y',spanGaps:true},
+        {label:'ROI (x)',data:roiData,borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1',spanGaps:true},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8,padding:10}}},
+        plugins:{
+          legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8,padding:10}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='y'?'CPL: R$'+ctx.parsed.y:'ROI: '+ctx.parsed.y+'x'}}
+        },
         scales:{
           x:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#6B5C40',font:{size:9},maxTicksLimit:maxTicks}},
-          y:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#1E7A42',font:{size:9}},position:'left',beginAtZero:true},
-          y1:{grid:{display:false},ticks:{color:'#C8941A',font:{size:9}},position:'right',beginAtZero:true},
+          y:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#C8941A',font:{size:9},callback:v=>'R$'+v},position:'left',beginAtZero:true},
+          y1:{grid:{display:false},ticks:{color:'#5B7FA6',font:{size:9},callback:v=>v+'x'},position:'right',beginAtZero:true},
         }
       }
     });
