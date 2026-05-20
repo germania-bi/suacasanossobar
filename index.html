@@ -292,38 +292,8 @@
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
     <div class="block" style="display:flex;flex-direction:column">
-      <div class="bhead"><div class="c-title pill-gray">Canais de Aquisição</div><div class="bsub">leads · vendas · conversão por origem</div></div>
-      <div class="bbody" style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">
-        <div class="canal-ch">
-          <div class="canal-ch-lbl">Ads → WhatsApp</div>
-          <div class="canal-ch-stats">
-            <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-wpp-leads">--</span><span class="canal-ch-l">leads</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-wpp-vendas">--</span><span class="canal-ch-l">vendas</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-wpp-perdas">--</span><span class="canal-ch-l">perdas</span></div>
-            <span class="conv-badge lo" id="ccf-wpp-conv">--</span>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="canal-ch">
-          <div class="canal-ch-lbl">Ads → Formulário LP</div>
-          <div class="canal-ch-stats">
-            <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-form-leads">--</span><span class="canal-ch-l">leads</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-form-vendas">--</span><span class="canal-ch-l">vendas</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-form-perdas">--</span><span class="canal-ch-l">perdas</span></div>
-            <span class="conv-badge lo" id="ccf-form-conv">--</span>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="canal-ch">
-          <div class="canal-ch-lbl">Orgânico</div>
-          <div class="canal-ch-stats">
-            <div class="canal-ch-num"><span class="canal-ch-v" id="ccf-org-leads">--</span><span class="canal-ch-l">leads</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-green)" id="ccf-org-vendas">--</span><span class="canal-ch-l">vendas</span></div>
-            <div class="canal-ch-num"><span class="canal-ch-v" style="color:var(--s-red)" id="ccf-org-perdas">--</span><span class="canal-ch-l">perdas</span></div>
-            <span class="conv-badge lo" id="ccf-org-conv">--</span>
-          </div>
-        </div>
-      </div>
+      <div class="bhead"><div class="c-title pill-gray">Top Cidades</div><div class="bsub">leads · canal Ads</div></div>
+      <div class="bbody" style="flex:1;display:flex;flex-direction:column;justify-content:center"><div id="mk-top-cidades"></div></div>
     </div>
   </div>
 
@@ -1806,7 +1776,37 @@ function renderMarketing(rd,ads){
     const convEl=document.getElementById('ccf-'+pfx+'-conv');
     if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
-  setCard('wpp',wppS); setCard('form',formS); setCard('org',orgS);
+  // Top Cidades por leads Ads (Germania = !isLoja)
+  const cidadeMap={};
+  rdC.forEach(r=>{
+    const c=(r['Unidades de atendimento']||'').trim();
+    if(!c) return;
+    if(!cidadeMap[c]) cidadeMap[c]={leads:0,vendas:0};
+    cidadeMap[c].leads++;
+    if(estadoNorm(r)==='Ganho') cidadeMap[c].vendas++;
+  });
+  const topCidades=Object.entries(cidadeMap).sort((a,b)=>b[1].leads-a[1].leads).slice(0,7);
+  const maxLeads=topCidades[0]?.[1].leads||1;
+  const rankCors=['var(--gold)','var(--txt-mid)','#A0784A'];
+  const cidadesEl=document.getElementById('mk-top-cidades');
+  if(cidadesEl) cidadesEl.innerHTML=topCidades.map(([cidade,d],i)=>{
+    const pct=Math.round(d.leads/maxLeads*100);
+    const conv=d.leads?Math.round(d.vendas/d.leads*100):0;
+    const rc=rankCors[i]||'var(--txt-faint)';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i>0?'border-top:1px solid rgba(255,200,120,0.07)':''}">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:${rc};width:18px;text-align:center;flex-shrink:0;line-height:1">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:12px;color:var(--txt);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">${cidade}</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--txt);line-height:1;margin-left:6px;flex-shrink:0">${d.leads} <span style="font-size:10px;font-weight:400;color:var(--txt-faint)">leads</span></span>
+        </div>
+        <div style="height:3px;background:rgba(255,200,120,0.08);border-radius:2px">
+          <div style="height:3px;width:${pct}%;background:var(--gold);border-radius:2px"></div>
+        </div>
+      </div>
+      ${conv>0?`<span class="conv-badge ${conv>=15?'hi':conv>=5?'mid':'lo'}" style="flex-shrink:0">${conv}%</span>`:`<span style="width:34px"></span>`}
+    </div>`;
+  }).join('');
 
   // Tabela funil por origem
   const tbody=document.getElementById('mk-funil-origem-body');
