@@ -1172,12 +1172,12 @@ function renderVisaoGeral(rd,ez,ads){
         tooltip:{callbacks:{
           title:items=>{
             const idx=items[0].dataIndex;const k=dk[idx];
+            const fmtPT=d=>d?d.slice(8)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';
             if(items[0].datasetIndex===1&&prev&&dk[0]){
               const off=Math.round((new Date(k)-new Date(dk[0]))/864e5);
-              const pk=fmt(new Date(+prev.from+off*864e5));
-              return pk?pk.split('-').slice(1).join('/')+'/'+pk.slice(0,4):'';
+              return fmtPT(fmt(new Date(+prev.from+off*864e5)));
             }
-            return k?k.split('-').slice(1).join('/')+'/'+k.slice(0,4):'';
+            return fmtPT(k);
           },
           label:items=>`${items.dataset.label}: ${items.raw??'—'} leads`
         }}
@@ -1641,12 +1641,12 @@ function renderAtendimento(ez,rd){
         tooltip:{callbacks:{
           title:items=>{
             const idx=items[0].dataIndex;const k=dk[idx];
+            const fmtPT=d=>d?d.slice(8)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';
             if(items[0].datasetIndex===1&&prev&&dk[0]){
               const off=Math.round((new Date(k)-new Date(dk[0]))/864e5);
-              const pk=fmt(new Date(+prev.from+off*864e5));
-              return pk?pk.split('-').slice(1).join('/')+'/'+pk.slice(0,4):'';
+              return fmtPT(fmt(new Date(+prev.from+off*864e5)));
             }
-            return k?k.split('-').slice(1).join('/')+'/'+k.slice(0,4):'';
+            return fmtPT(k);
           },
           label:items=>`${items.dataset.label}: ${items.raw??'—'} atendimentos`
         }}
