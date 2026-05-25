@@ -338,6 +338,10 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-size:var(--fs-label); color:var(--txt-mid);
   text-transform:uppercase; letter-spacing:.09em; margin-top:3px;
 }
+.mkpi-scope{
+  display:block; font-size:9px; color:var(--txt-faint);
+  text-transform:none; letter-spacing:.04em; font-weight:400; margin-top:2px;
+}
 .mkpi-d{ display:flex; align-items:baseline; justify-content:center; gap:5px; margin-top:5px; white-space:nowrap; }
 .mkpi-d-val{
   font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:.03em;
