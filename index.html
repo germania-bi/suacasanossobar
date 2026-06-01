@@ -554,8 +554,13 @@ function filterEZ(){
     return true;
   });
 }
+function isScnbAds(r){
+  const c=(r['Nome da campanha']||'').toUpperCase();
+  return c.includes('SUA CASA')||c.includes('NOSSO BAR');
+}
 function filterADS(){
   return rawADS.filter(r=>{
+    if(!isScnbAds(r)) return false;
     const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
     if(!d) return false;
     if(dateFrom&&d<dateFrom) return false;
@@ -1764,7 +1769,7 @@ function renderMarketing(rd,ads){
     const pRdC=rawRD.filter(r=>{if(isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
     const pFat=pGanhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-    const pAds=rawADS.filter(r=>{const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
+    const pAds=rawADS.filter(r=>{if(!isScnbAds(r))return false;const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
     const pInvest=pAds.reduce((s,r)=>s+parseADSBRL(r),0);
     const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
     const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
