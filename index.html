@@ -549,18 +549,26 @@ function filterRDCriacao(){
 function isScnbEZ(r){
   return (r['Nome do Agente']||'').toLowerCase().includes('mirian');
 }
+function ezContactKey(r){
+  const c=(r['Contato']||'').trim();
+  if(c) return c.toLowerCase();
+  return (r['Telefone']||'').trim()||null;
+}
 function ezFilter(from,to){
+  const seen=new Set();
   return rawEZ.filter(r=>{
     if(!isScnbEZ(r)) return false;
     const tipo=(r['Tipo']||'').toLowerCase().trim();
     if(tipo==='bot'||tipo==='automatizado'||tipo==='robot') return false;
     const d=parseDate(r['Criado em']);
-    return d&&d>=from&&d<=to;
+    if(!d||d<from||d>to) return false;
+    const key=ezContactKey(r);
+    if(key){if(seen.has(key))return false;seen.add(key);}
+    return true;
   });
 }
 function filterEZ(){
-  // Cada linha do CSV já é uma conversa distinta — dedup por Protocolo estava
-  // colapsando conversas diferentes por causa de notação científica no CSV
+  const seen=new Set();
   return rawEZ.filter(r=>{
     if(!isScnbEZ(r)) return false;
     const tipo=(r['Tipo']||'').toLowerCase().trim();
@@ -569,6 +577,8 @@ function filterEZ(){
     if(!d) return false;
     if(dateFrom&&d<dateFrom) return false;
     if(dateTo&&d>dateTo) return false;
+    const key=ezContactKey(r);
+    if(key){if(seen.has(key))return false;seen.add(key);}
     return true;
   });
 }
