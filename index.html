@@ -1756,7 +1756,7 @@ function renderMarketing(rd,ads){
   const roi=investTotal?fat/investTotal:0;
   const cac=ganhoGerm.length?investTotal/ganhoGerm.length:0;
 
-  document.getElementById('mk-invest').textContent=fmtBRLk(investTotal)||'--';
+  document.getElementById('mk-invest').textContent=fmtBRL(investTotal)||'--';
   document.getElementById('mk-leads-ads').textContent=leadsAds||rdC.length;
   document.getElementById('mk-vendas-ads').textContent=ganhoGerm.length;
   document.getElementById('mk-cpl').textContent=cpl?fmtBRLk(cpl):'--';
