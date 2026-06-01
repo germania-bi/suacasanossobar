@@ -2009,7 +2009,7 @@ function renderMarketing(rd,ads){
       type:'line',
       data:{labels:keys.map(labelFn),datasets:[
         {label:'Invest. R$',data:keys.map(k=>Math.round(buckets[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y'},
-        {label:'Leads Meta',data:keys.map(k=>buckets[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y1'},
+        {label:'Leads Meta',data:keys.map(k=>buckets[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.15)',tension:0.3,pointRadius:3,fill:true,yAxisID:'y1'},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,
