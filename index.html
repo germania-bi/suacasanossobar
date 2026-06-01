@@ -1151,9 +1151,14 @@ function renderVisaoGeral(rd,ez,ads){
   setDelta('vg-conv-d',  conv,              p?.conv,    true, false,dlbl);
   setDelta('vg-ciclo-d', ciclos.length?Math.round(avg(ciclos)):0, p?.ciclo, false,false,dlbl);
 
-  // Leads por dia — com linha comparativa e tooltip
+  // Leads por dia/mês — granularidade adaptativa (≤35d → diário, >35d → mensal)
+  const spanL=dateFrom&&dateTo?(dateTo-dateFrom)/864e5:30;
+  const granL=spanL<=35?'dia':'mes';
+  const mAbrL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const keyL=d=>granL==='mes'?fmt(d).slice(0,7):fmt(d);
+  const labelLeads=k=>granL==='mes'?mAbrL[parseInt(k.slice(5))-1]+'/'+k.slice(2,4):parseInt(k.slice(8))+'';
   const diasMap={};
-  rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasMap[k]=(diasMap[k]||0)+1;}});
+  rdC.forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=keyL(d);diasMap[k]=(diasMap[k]||0)+1;}});
   const dk=Object.keys(diasMap).sort();
   const vals=dk.map(k=>diasMap[k]);
   const maxVal=Math.max(...vals,0);
@@ -1167,7 +1172,7 @@ function renderVisaoGeral(rd,ez,ads){
     fill:true
   }];
   const subEl=document.getElementById('vg-leadsdia-sub');
-  if(prev&&dlbl){
+  if(granL==='dia'&&prev&&dlbl){
     const diasPrev={};
     rawRD.filter(r=>{
       const canal=filtroCanal();
@@ -1177,7 +1182,6 @@ function renderVisaoGeral(rd,ez,ads){
       if(canal==='loja'&&!isLoja(r)) return false;
       return true;
     }).forEach(r=>{const d=parseDate(r['Data de criação']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
-    // Alinha por offset de dias (não por índice de posição)
     const anchor=new Date(dk[0]||fmt(dateFrom));
     const prevVals=dk.map(k=>{
       const offset=Math.round((new Date(k)-anchor)/864e5);
@@ -1205,7 +1209,7 @@ function renderVisaoGeral(rd,ez,ads){
   dc('ch-leads-dia');
   const ctx=document.getElementById('ch-leads-dia');
   if(ctx) charts['ch-leads-dia']=new Chart(ctx,{
-    type:'line',data:{labels:dk.map(k=>k.slice(5)),datasets},
+    type:'line',data:{labels:dk.map(labelLeads),datasets},
     options:{
       responsive:true,maintainAspectRatio:true,aspectRatio:2.2,
       plugins:{
@@ -1213,6 +1217,10 @@ function renderVisaoGeral(rd,ez,ads){
         tooltip:{callbacks:{
           title:items=>{
             const idx=items[0].dataIndex;const k=dk[idx];
+            if(granL==='mes'){
+              const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+              return meses[parseInt(k.slice(5))-1]+' '+k.slice(0,4);
+            }
             const fmtPT=d=>d?d.slice(8)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';
             if(items[0].datasetIndex===1&&prev&&dk[0]){
               const off=Math.round((new Date(k)-new Date(dk[0]))/864e5);
@@ -1230,33 +1238,25 @@ function renderVisaoGeral(rd,ez,ads){
     }
   });
 
-  // Evolução de Vendas — barras empilhadas Germânia/Loja + linha faturamento
+  // Evolução de Vendas — barras empilhadas Germânia/Loja (≤35d → S1-S4, >35d → meses)
   {
     const ganhos=rd.filter(r=>estadoNorm(r)==='Ganho'&&parseDate(r['Data de fechamento']));
     const span=dateFrom&&dateTo?(dateTo-dateFrom)/864e5:30;
-    const useSemana=span>30;
-    const keyOf=d=>{
-      if(useSemana){
-        const s=new Date(d);s.setDate(s.getDate()-s.getDay());
-        return s.toISOString().slice(0,10);
-      }
-      return d.toISOString().slice(0,10);
-    };
-    const labelOf=k=>useSemana?'sem '+k.slice(5,10):k.slice(5,10);
+    const gran=span<=35?'semana':'mes';
+    const mAbr=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const keyOf=d=>gran==='mes'?fmt(d).slice(0,7):'S'+Math.min(Math.ceil(d.getDate()/7),4);
+    const labelOf=k=>gran==='mes'?mAbr[parseInt(k.slice(5))-1]+'/'+k.slice(2,4):k;
     const buckets={};
     ganhos.forEach(r=>{
       const d=parseDate(r['Data de fechamento']);
       const k=keyOf(d);
-      if(!buckets[k]) buckets[k]={germ:0,loja:0,fat:0};
-      const v=parseFloat((r['Valor Único']||'0').replace(/\./g,'').replace(',','.'))||0;
-      if(isLoja(r)){buckets[k].loja++;buckets[k].fat+=v;}
-      else{buckets[k].germ++;buckets[k].fat+=v;}
+      if(!buckets[k]) buckets[k]={germ:0,loja:0};
+      if(isLoja(r)) buckets[k].loja++; else buckets[k].germ++;
     });
-    const keys=Object.keys(buckets).sort();
+    const keys=gran==='semana'?['S1','S2','S3','S4'].filter(k=>buckets[k]):Object.keys(buckets).sort();
     const labels=keys.map(labelOf);
-    const germData=keys.map(k=>buckets[k].germ);
-    const lojaData=keys.map(k=>buckets[k].loja);
-    const fatData=keys.map(k=>Math.round(buckets[k].fat));
+    const germData=keys.map(k=>buckets[k]?.germ||0);
+    const lojaData=keys.map(k=>buckets[k]?.loja||0);
     const subEl=document.getElementById('vg-vendas-sub');
     if(subEl) subEl.textContent=ganhos.length+' venda'+(ganhos.length!==1?'s':'')+' no período';
     dc('ch-vendas-evo');
@@ -1264,22 +1264,18 @@ function renderVisaoGeral(rd,ez,ads){
     if(ctxVE) charts['ch-vendas-evo']=new Chart(ctxVE,{
       type:'bar',
       data:{labels,datasets:[
-        {label:'Germânia',data:germData,backgroundColor:'rgba(30,122,66,0.85)',stack:'v',order:2},
-        {label:'Loja',data:lojaData,backgroundColor:'rgba(91,127,166,0.80)',stack:'v',order:2},
-        {label:'Faturado R$',data:fatData,type:'line',borderColor:'rgba(255,255,255,0.35)',backgroundColor:'transparent',
-         borderWidth:1.5,borderDash:[3,3],pointRadius:3,pointBackgroundColor:'transparent',
-         pointBorderColor:'rgba(255,255,255,0.50)',pointBorderWidth:1.5,tension:0.3,yAxisID:'yf',order:1},
+        {label:'Germânia',data:germData,backgroundColor:'rgba(30,122,66,0.85)',stack:'v'},
+        {label:'Loja',data:lojaData,backgroundColor:'rgba(91,127,166,0.80)',stack:'v'},
       ]},
       options:{
         responsive:true,maintainAspectRatio:true,aspectRatio:2.2,
         plugins:{
           legend:{labels:{color:'#A89870',font:{size:9},boxWidth:8,padding:10}},
-          tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='yf'?'R$ '+ctx.parsed.y.toLocaleString('pt-BR'):ctx.dataset.label+': '+ctx.parsed.y}}
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.parsed.y}}
         },
         scales:{
           x:{stacked:true,grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#6B5C40',font:{size:9}}},
-          y:{stacked:true,grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},stepSize:1},beginAtZero:true,position:'left'},
-          yf:{grid:{display:false},ticks:{color:'rgba(255,255,255,0.30)',font:{size:8},callback:v=>v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+v},beginAtZero:true,position:'right'},
+          y:{stacked:true,grid:{color:'rgba(255,200,120,0.06)'},ticks:{color:'#A89870',font:{size:9},stepSize:1},beginAtZero:true},
         }
       }
     });
