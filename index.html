@@ -549,9 +549,22 @@ function filterRDCriacao(){
 function isScnbEZ(r){
   return (r['Nome do Agente']||'').toLowerCase().includes('mirian');
 }
-function filterEZ(){
-  return dedupEZ(rawEZ).filter(r=>{
+function ezFilter(from,to){
+  return rawEZ.filter(r=>{
     if(!isScnbEZ(r)) return false;
+    const tipo=(r['Tipo']||'').toLowerCase().trim();
+    if(tipo==='bot'||tipo==='automatizado'||tipo==='robot') return false;
+    const d=parseDate(r['Criado em']);
+    return d&&d>=from&&d<=to;
+  });
+}
+function filterEZ(){
+  // Cada linha do CSV já é uma conversa distinta — dedup por Protocolo estava
+  // colapsando conversas diferentes por causa de notação científica no CSV
+  return rawEZ.filter(r=>{
+    if(!isScnbEZ(r)) return false;
+    const tipo=(r['Tipo']||'').toLowerCase().trim();
+    if(tipo==='bot'||tipo==='automatizado'||tipo==='robot') return false;
     const d=parseDate(r['Criado em']);
     if(!d) return false;
     if(dateFrom&&d<dateFrom) return false;
@@ -746,10 +759,7 @@ function computeVG(from,to){
     if(!dc||!df) return null;
     return Math.max(0,Math.round((df-dc)/864e5));
   }).filter(v=>v!==null);
-  const ezSlice=dedupEZ(rawEZ).filter(r=>{
-    const d=parseDate(r['Criado em']);
-    return d&&d>=from&&d<=to;
-  });
+  const ezSlice=ezFilter(from,to);
   const tpis=ezSlice.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
   return {
     leads:rdSlice.length,vendGerm:vendGerm.length,vendLoja:vendLoja.length,
@@ -1598,7 +1608,7 @@ function renderAtendimento(ez,rd){
   // Deltas KPIs
   const prev=getPrevPeriod();const dlbl=getPrevLabel();
   if(prev){
-    const pEZ=dedupEZ(rawEZ).filter(r=>{const d=parseDate(r['Criado em']);return d&&d>=prev.from&&d<=prev.to;});
+    const pEZ=ezFilter(prev.from,prev.to);
     const pTpis=pEZ.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
     const pTmas=pEZ.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
     const pIA=pEZ.map(r=>parseInt(r['Contagem de Interações do Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
@@ -1628,7 +1638,7 @@ function renderAtendimento(ez,rd){
   const subElAt=document.getElementById('at-dia-sub');
   if(prev&&dlbl){
     const diasPrev={};
-    dedupEZ(rawEZ).filter(r=>{const d=parseDate(r['Criado em']);return d&&d>=prev.from&&d<=prev.to;})
+    ezFilter(prev.from,prev.to)
       .forEach(r=>{const d=parseDate(r['Criado em']);if(d){const k=fmt(d);diasPrev[k]=(diasPrev[k]||0)+1;}});
     const anchor=new Date(dk[0]||fmt(dateFrom||new Date()));
     const prevVals=dk.map(k=>{
