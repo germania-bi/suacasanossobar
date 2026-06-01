@@ -68,7 +68,8 @@
   </div>
   <div class="f-shortcuts" id="dateShortcuts">
     <button class="btn-sh" onclick="setShortcut('7d',this)">7d</button>
-    <button class="btn-sh active" onclick="setShortcut('thismonth',this)">Mês</button>
+    <button class="btn-sh" onclick="setShortcut('lastmonth',this)">Mês ant</button>
+    <button class="btn-sh" onclick="setShortcut('thismonth',this)">Mês</button>
     <button class="btn-sh" onclick="setShortcut('quarter',this)">Tri</button>
     <button class="btn-sh" onclick="setShortcut('all',this)">Tudo</button>
   </div>
@@ -631,10 +632,18 @@ function hbarHtml(id,items,color=''){
 // DATES UI
 // ═══════════════════════════════════════════════════════
 let fpFrom,fpTo;
+function defaultShortcut(){return new Date().getDate()<=7?'lastmonth':'thismonth';}
 function initDates(){
   const n=new Date(),y=n.getFullYear(),m=n.getMonth();
-  const f=new Date(y,m,1),t=new Date(y,m+1,0);
+  const sc=defaultShortcut();
+  let f,t;
+  if(sc==='lastmonth'){const pm=m===0?11:m-1,py=m===0?y-1:y;f=new Date(py,pm,1);t=new Date(py,pm+1,0);}
+  else{f=new Date(y,m,1);t=new Date(y,m+1,0);}
+  currentShortcut=sc;
   dateFrom=f; dateTo=t;
+  document.querySelectorAll('#dateShortcuts .btn-sh').forEach(b=>b.classList.remove('active'));
+  const ab=document.querySelector('[onclick*="'+sc+'"]');
+  if(ab) ab.classList.add('active');
   const cfg={locale:'pt',dateFormat:'d/m/Y',disableMobile:true,wrap:true};
   fpFrom=flatpickr('#dateFromWrap',{...cfg,defaultDate:f,
     onOpen(){document.getElementById('dateFromWrap').classList.add('open');},
@@ -671,12 +680,13 @@ function setShortcut(type,el){
 function updateLimparBtn(){
   const btn=document.getElementById('btnLimpar');
   if(!btn) return;
-  const isDefault=currentShortcut==='thismonth'&&filtroCanal()==='todos';
+  const isDefault=currentShortcut===defaultShortcut()&&filtroCanal()==='todos';
   btn.style.display=isDefault?'none':'';
 }
 function limparFiltro(){
-  const mesBtn=document.querySelector('[onclick*="thismonth"]');
-  if(mesBtn) setShortcut('thismonth',mesBtn);
+  const sc=defaultShortcut();
+  const defBtn=document.querySelector('[onclick*="'+sc+'"]');
+  if(defBtn) setShortcut(sc,defBtn);
   document.querySelectorAll('#canalChips .btn-sh').forEach(b=>b.classList.remove('active'));
   const todosBtn=document.querySelector('#canalChips .btn-sh');
   if(todosBtn){todosBtn.classList.add('active');document.getElementById('filtroCanal').value='todos';}
