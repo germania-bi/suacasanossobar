@@ -1001,30 +1001,37 @@ function renderMapaSP(ganho){
   if(_mapaControl){try{_mapaControl.remove();}catch(e){}_mapaControl=null;}
   const sorted=Object.entries(cityData).filter(([c])=>CIDADES_SP[c]).sort((a,b)=>b[1].n-a[1].n);
 
-  // Raio de foco Germânia — baricentro ponderado somente por vendas próprias
-  let wLat=0,wLon=0,wTotal=0;
-  sorted.forEach(([cidade,d])=>{const c=CIDADES_SP[cidade];wLat+=c.lat*d.germ;wLon+=c.lon*d.germ;wTotal+=d.germ;});
-  if(wTotal>0){
-    const cLat=wLat/wTotal,cLon=wLon/wTotal;
-    let avgDist=0,maxDist=0;
-    sorted.forEach(([cidade,d])=>{
-      const c=CIDADES_SP[cidade];
-      const dist=Math.sqrt(Math.pow((c.lat-cLat)*111000,2)+Math.pow((c.lon-cLon)*85000,2));
-      avgDist+=dist*d.germ;
-      if(dist>maxDist) maxDist=dist;
+  // Zona de foco histórica — baricentro all-time Germânia, raio = média ponderada
+  const histCity={};
+  rawRD.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r)).forEach(r=>{
+    const raw=(r['Unidades de atendimento']||'').trim();
+    if(!raw) return;
+    const canon=resolveCity(raw)||raw;
+    if(!CIDADES_SP[canon]) return;
+    histCity[canon]=(histCity[canon]||0)+1;
+  });
+  const histEntries=Object.entries(histCity).filter(([c])=>CIDADES_SP[c]);
+  const histTotal=histEntries.reduce((s,[,n])=>s+n,0);
+  if(histTotal>0){
+    let hLat=0,hLon=0;
+    histEntries.forEach(([c,n])=>{hLat+=CIDADES_SP[c].lat*n;hLon+=CIDADES_SP[c].lon*n;});
+    hLat/=histTotal;hLon/=histTotal;
+    let avgD=0;
+    histEntries.forEach(([c,n])=>{
+      const coord=CIDADES_SP[c];
+      const dist=Math.sqrt(Math.pow((coord.lat-hLat)*111000,2)+Math.pow((coord.lon-hLon)*85000,2));
+      avgD+=dist*n;
     });
-    avgDist=avgDist/wTotal;
-    // raio = distância até a cidade mais distante + 10% de buffer (mín 60km)
-    const reach=L.circle([cLat,cLon],{
-      radius:Math.max(maxDist*1.1,60000),
+    avgD/=histTotal;
+    const zone=L.circle([hLat,hLon],{
+      radius:Math.max(avgD*1.3,40000),
       fillColor:'#C8941A',color:'#C8941A',
-      weight:1,fillOpacity:0.04,opacity:0.30,
-      dashArray:'7 5'
+      weight:1,fillOpacity:0.05,opacity:0.28,dashArray:'7 5'
     }).bindTooltip(
-      'Região de foco Germânia<br><span style="opacity:.7;font-weight:400">Quanto menor o raio, mais concentrada<br>a atuação própria no período</span>',
+      'Zona de foco histórica<br><span style="opacity:.7;font-weight:400">Concentração de todas as vendas Germânia<br>no histórico — região prioritária para anúncios</span>',
       {className:'mapa-tooltip',sticky:true,direction:'top'}
     ).addTo(_mapaLeaflet);
-    _mapaLayers.push(reach);
+    _mapaLayers.push(zone);
   }
 
   // Pins por cidade — cor por modelo dominante
