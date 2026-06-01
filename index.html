@@ -1253,7 +1253,7 @@ function renderVisaoGeral(rd,ez,ads){
       if(!buckets[k]) buckets[k]={germ:0,loja:0};
       if(isLoja(r)) buckets[k].loja++; else buckets[k].germ++;
     });
-    const keys=gran==='semana'?['S1','S2','S3','S4'].filter(k=>buckets[k]):Object.keys(buckets).sort();
+    const keys=gran==='semana'?['S1','S2','S3','S4']:Object.keys(buckets).sort();
     const labels=keys.map(labelOf);
     const germData=keys.map(k=>buckets[k]?.germ||0);
     const lojaData=keys.map(k=>buckets[k]?.loja||0);
