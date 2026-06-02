@@ -320,15 +320,15 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .parc-badge{ font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:800; color:var(--blue); flex-shrink:0; }
 .bbody{ padding:16px 18px; }
 
-/* ─── MINI KPI ROW ─── */
+/* ─── KPI ROW ─── */
 .mkpi-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
-.mkpi{
+.mkpi-lg{
   flex:1; background:var(--card2); border:0.8px solid var(--border);
-  border-radius:6px; padding:10px 12px; text-align:center; min-width:100px;
+  border-radius:8px; padding:22px 24px; text-align:left; min-width:130px;
 }
 .mkpi-v{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:var(--fs-data-md); font-weight:900; color:#F0DEB8; line-height:1;
+  font-size:54px; font-weight:900; color:#F0DEB8; line-height:1;
 }
 .mkpi-v.gold { color:var(--gold-lt); }
 .mkpi-v.green{ color:var(--s-green); }
@@ -336,13 +336,13 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .mkpi-v.blue { color:var(--blue); }
 .mkpi-l{
   font-size:var(--fs-label); color:var(--txt-mid);
-  text-transform:uppercase; letter-spacing:.09em; margin-top:3px;
+  text-transform:uppercase; letter-spacing:.09em; margin-top:8px;
 }
 .mkpi-scope{
-  display:block; font-size:9px; color:var(--txt-faint);
-  text-transform:none; letter-spacing:.04em; font-weight:400; margin-top:2px;
+  display:block; font-size:10px; color:var(--txt-faint);
+  text-transform:none; letter-spacing:.04em; font-weight:400; margin-top:3px;
 }
-.mkpi-d{ display:flex; align-items:baseline; justify-content:center; gap:5px; margin-top:5px; white-space:nowrap; }
+.mkpi-d{ display:flex; align-items:baseline; justify-content:flex-start; gap:5px; margin-top:10px; white-space:nowrap; }
 .mkpi-d-val{
   font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:.03em;
 }
@@ -350,16 +350,6 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .mkpi-d-val.dn  { color:#E05C50; }
 .mkpi-d-val.neu { color:#9A9A9A; }
 .mkpi-d-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--txt-faint); font-weight:400; letter-spacing:.02em; }
-
-/* ─── MKPI LARGE (teste VG primeira linha) ─── */
-.mkpi-lg{
-  flex:1; background:var(--card2); border:0.8px solid var(--border);
-  border-radius:8px; padding:22px 24px; text-align:left; min-width:130px;
-}
-.mkpi-lg .mkpi-v{ font-size:54px; line-height:1; }
-.mkpi-lg .mkpi-l{ margin-top:8px; font-size:11px; }
-.mkpi-lg .mkpi-scope{ margin-top:3px; font-size:10px; }
-.mkpi-lg .mkpi-d{ justify-content:flex-start; margin-top:10px; }
 
 /* ─── CHART BOX ─── */
 .chart-box{
