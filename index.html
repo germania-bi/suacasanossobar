@@ -225,17 +225,17 @@
 
   <div class="chart-box">
     <div class="ctitle"><span class="c-title pill-gray">Volume Diário de Atendimentos</span><span class="ctitle-sub" id="at-dia-sub"></span></div>
-    <div style="font-size:11px;color:var(--txt-faint);margin-top:2px;margin-bottom:8px">conversas abertas por dia — receptivas e ativas combinadas</div>
+    <div class="ctitle-desc">Conversas abertas por dia (contatos únicos) — receptivas e ativas combinadas.</div>
     <canvas id="ch-atend-dia" style="min-height:170px"></canvas>
   </div>
 
   <div class="g2">
     <div class="block">
-      <div class="bhead"><div class="c-title pill-gray">Contato Receptivo vs Ativo</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Contato Receptivo vs Ativo</div><div class="bhead-desc">Proporção entre conversas iniciadas pelo cliente (receptivo) e pelo time (ativo) — revela o perfil de origem dos atendimentos.</div></div>
       <div class="bbody"><div id="at-rv-dist"></div></div>
     </div>
     <div class="block">
-      <div class="bhead blue"><div class="c-title pill-gray">Performance por Agente</div></div>
+      <div class="bhead blue"><div class="c-title pill-gray">Performance por Agente</div><div class="bhead-desc">Atendimentos e conversões por agente — identifica quem mais contribuiu com vendas no período.</div></div>
       <div class="bbody">
         <div class="stbl-wrap">
           <table class="stbl">
@@ -254,11 +254,11 @@
 
   <div class="g2">
     <div class="block">
-      <div class="bhead"><div class="c-title pill-gray">Classificações</div><div class="bsub">resultado do atendimento</div></div>
+      <div class="bhead"><div class="c-title pill-gray">Classificações</div><div class="bsub">resultado do atendimento</div><div class="bhead-desc">Como os atendimentos foram encerrados ou classificados — revela padrões de desfecho e qualidade do contato.</div></div>
       <div class="bbody"><div class="mbar-list" id="at-classificacoes"></div></div>
     </div>
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Tempo para Primeira Interação</div><div class="bsub">impacto na conversão</div></div>
+      <div class="bhead gold"><div class="c-title pill-gray">Tempo para Primeira Interação</div><div class="bsub">impacto na conversão</div><div class="bhead-desc">Quanto tempo o agente levou para responder o primeiro contato — menor TPI aumenta a chance de conversão.</div></div>
       <div class="bbody">
         <div id="at-tpi-faixas"></div>
         <div class="divider"></div>
