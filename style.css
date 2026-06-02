@@ -351,6 +351,16 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .mkpi-d-val.neu { color:#9A9A9A; }
 .mkpi-d-lbl{ font-family:'Barlow Condensed',sans-serif; font-size:11px; color:var(--txt-faint); font-weight:400; letter-spacing:.02em; }
 
+/* ─── MKPI LARGE (teste VG primeira linha) ─── */
+.mkpi-lg{
+  flex:1; background:var(--card2); border:0.8px solid var(--border);
+  border-radius:8px; padding:18px 20px; text-align:left; min-width:130px;
+}
+.mkpi-lg .mkpi-v{ font-size:40px; line-height:1; }
+.mkpi-lg .mkpi-l{ margin-top:6px; font-size:11px; }
+.mkpi-lg .mkpi-scope{ margin-top:3px; font-size:10px; }
+.mkpi-lg .mkpi-d{ justify-content:flex-start; margin-top:10px; }
+
 /* ─── CHART BOX ─── */
 .chart-box{
   background:var(--surface); border:0.8px solid var(--border2);
