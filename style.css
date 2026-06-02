@@ -279,10 +279,14 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   border-radius:6px; overflow:hidden;
 }
 .bhead{
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   padding:13px 18px;
   background:linear-gradient(180deg,var(--card2) 0%,var(--card) 100%);
   position:relative;
+}
+.bhead-desc{
+  flex-basis:100%; font-size:11px; color:var(--txt-faint);
+  line-height:1.45; margin-top:4px; font-weight:400; letter-spacing:.01em;
 }
 .bico{
   width:26px; height:26px; border-radius:4px;
