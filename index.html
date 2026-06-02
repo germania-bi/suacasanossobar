@@ -1901,24 +1901,33 @@ function renderMarketing(rd,ads){
       bkts[k].fat+=parseBRL(r['Valor Único']);
     });
     const keys=Object.keys(bkts).sort();
-    const cplData=keys.map(k=>bkts[k].leads?Math.round(bkts[k].invest/bkts[k].leads):null);
-    const roiData=keys.map(k=>bkts[k].invest?Math.round(bkts[k].fat/bkts[k].invest*10)/10:null);
     const ciEl=document.getElementById('ch-crm-invest');
     if(ciEl){
       if(!keys.length){ciEl.innerHTML='<div class="empty"><div class="ei">📊</div>Sem dados no período</div>';}
       else{
-        const avgCpl=cplData.filter(v=>v!=null).reduce((s,v)=>s+v,0)/(cplData.filter(v=>v!=null).length||1);
+        // Agregar em no máximo 5 grupos com média ponderada
+        const MAX=5;
+        const gsz=Math.ceil(keys.length/MAX);
+        const rows=[];
+        for(let i=0;i<keys.length;i+=gsz){
+          const grp=keys.slice(i,i+gsz);
+          const inv=grp.reduce((s,k)=>s+bkts[k].invest,0);
+          const lds=grp.reduce((s,k)=>s+bkts[k].leads,0);
+          const fat=grp.reduce((s,k)=>s+bkts[k].fat,0);
+          const lbl=grp.length>1?labelFn(grp[0])+'–'+labelFn(grp[grp.length-1]):labelFn(grp[0]);
+          rows.push({lbl,cpl:lds?Math.round(inv/lds):null,roi:inv?Math.round(fat/inv*10)/10:null});
+        }
+        const avgCpl=rows.filter(r=>r.cpl!=null).reduce((s,r)=>s+r.cpl,0)/(rows.filter(r=>r.cpl!=null).length||1);
         ciEl.innerHTML=`<table class="stbl" style="width:100%">
           <thead><tr>
             <th>Período</th>
             <th style="text-align:right">CPL</th>
             <th style="text-align:right">ROI</th>
           </tr></thead>
-          <tbody>${keys.map((k,i)=>{
-            const cpl=cplData[i],roi=roiData[i];
+          <tbody>${rows.map(({lbl,cpl,roi})=>{
             const cplCls=cpl==null?'':(cpl<=avgCpl*0.85?'green':cpl>=avgCpl*1.15?'red':'');
             return `<tr>
-              <td style="color:var(--txt-mid);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.05em;text-transform:uppercase">${labelFn(k)}</td>
+              <td style="color:var(--txt-mid);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.05em;text-transform:uppercase">${lbl}</td>
               <td style="text-align:right"><span class="tv ${cplCls}">${cpl!=null?'R$'+cpl:'—'}</span></td>
               <td style="text-align:right"><span class="tv green">${roi!=null?roi+'x':'—'}</span></td>
             </tr>`;
