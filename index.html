@@ -168,7 +168,7 @@
   </div>
 
   <div class="block">
-    <div class="bhead"><div class="c-title pill-gray">Motivos de Perda</div><div class="bsub">via RD CRM</div></div>
+    <div class="bhead"><div class="c-title pill-gray">Motivos de Perda</div><div class="bsub" id="fn-perdas-sub">via RD CRM</div></div>
     <div class="bbody"><div class="mbar-list" id="fn-perdas"></div></div>
   </div>
 
@@ -1469,9 +1469,13 @@ function renderFunil(rd,ez){
   :'<div class="empty">Sem fechamentos no período</div>';
 
 
-  // Motivos de perda via RD CRM
-  const motivoFreq=freq(perdido.map(r=>({...r})),'Motivo de Perda')
+  // Motivos de perda via RD CRM — "Não conseguiu contato" excluído do ranking
+  const motivoAll=freq(perdido.map(r=>({...r})),'Motivo de Perda')
     .filter(([v])=>v&&v.trim()&&v.toLowerCase()!=='anotação do motivo de perda');
+  const scCount=motivoAll.find(([v])=>v.toLowerCase().includes('não conseguiu contato'))?.[1]||0;
+  const motivoFreq=motivoAll.filter(([v])=>!v.toLowerCase().includes('não conseguiu contato'));
+  const fnSub=document.getElementById('fn-perdas-sub');
+  if(fnSub) fnSub.textContent=scCount>0?`via RD CRM · ${scCount} sem contato`:'via RD CRM';
   mbar('fn-perdas',motivoFreq,'red');
 }
 
