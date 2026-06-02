@@ -1088,7 +1088,24 @@ function renderMapaSP(ganho){
   setTimeout(()=>{if(_mapaLeaflet) _mapaLeaflet.invalidateSize();},200);
 }
 
-const ETAPAS_ORDER=['Atendimento / Demonstração','Apresentação','Negociação','Proposta','Cadastro no Sistema','Preparação da Chopeira'];
+const ETAPAS_ORDER=[
+  'Entrada SCNB / Qualificação',
+  'Atendimento / Demonstração',
+  'Assinatura de Contrato',
+  'Processamento de Pagamento',
+  'Cadastro no Sistema',
+  'Preparação da Chopeira',
+  'Entrega da Chopeira',
+  'Acompanhamento / Relacionamento',
+];
+const ETAPAS_LABEL={
+  'Entrada SCNB / Qualificação':    'Atendimento',
+  'Atendimento / Demonstração':     'Qualificação do Lead',
+  'Processamento de Pagamento':     'Aguardando Pagamento',
+  'Entrega da Chopeira':            'Entregue',
+  'Acompanhamento / Relacionamento':'Pós Vendas',
+};
+const ETAPAS_OCULTAR=new Set(['Perdidos','Comissionamento do vendedor']);
 
 // ═══════════════════════════════════════════════════════
 // RENDER — HEADER
@@ -1402,7 +1419,7 @@ function renderFunil(rd,ez){
 
   // Funil por etapa
   const etapaMap={};
-  rdC.forEach(r=>{const e=(r['Etapa']||'').trim();if(e) etapaMap[e]=(etapaMap[e]||0)+1;});
+  rdC.forEach(r=>{const e=(r['Etapa']||'').trim();if(e&&!ETAPAS_OCULTAR.has(e)) etapaMap[e]=(etapaMap[e]||0)+1;});
   const etapas=Object.entries(etapaMap).sort((a,b)=>{
     const ia=ETAPAS_ORDER.indexOf(a[0]),ib=ETAPAS_ORDER.indexOf(b[0]);
     if(ia>=0&&ib>=0) return ia-ib;
@@ -1412,13 +1429,15 @@ function renderFunil(rd,ez){
   const totalFunil=Math.max(...etapas.map(e=>e[1]),1);
   const funilEl=document.getElementById('funil-etapas');
   if(funilEl){
-    funilEl.innerHTML=etapas.length?etapas.map(([e,n])=>`
-      <div class="funil-item">
-        <div class="funil-etapa" title="${e}">${e}</div>
+    funilEl.innerHTML=etapas.length?etapas.map(([e,n])=>{
+      const label=ETAPAS_LABEL[e]||e;
+      return `<div class="funil-item">
+        <div class="funil-etapa" title="${e}">${label}</div>
         <div class="funil-track"><div class="funil-fill" style="width:${Math.round(n/totalFunil*100)}%"></div></div>
         <div class="funil-count">${n}</div>
         <div class="funil-pct">${Math.round(n/totalFunil*100)}%</div>
-      </div>`).join('')
+      </div>`;
+    }).join('')
     :'<div class="empty"><div class="ei">📊</div>Sem dados no período</div>';
   }
 
