@@ -295,7 +295,7 @@
     </div>
     <div class="block" style="display:flex;flex-direction:column">
       <div class="bhead"><div class="c-title pill-gray">CPL × ROI</div><div class="bsub" id="mk-crm-invest-sub">eficiência ao longo do tempo</div><div class="bhead-desc">Custo por lead e retorno sobre investimento ao longo do tempo — CPL caindo e ROI subindo indica campanha ganhando eficiência.</div></div>
-      <div class="bbody" style="display:flex;flex-direction:column;flex:1;padding:12px 0 8px"><div style="position:relative;flex:1;min-height:0"><canvas id="ch-crm-invest"></canvas></div></div>
+      <div class="bbody"><div id="ch-crm-invest"></div></div>
     </div>
   </div>
 
@@ -1903,27 +1903,29 @@ function renderMarketing(rd,ads){
     const keys=Object.keys(bkts).sort();
     const cplData=keys.map(k=>bkts[k].leads?Math.round(bkts[k].invest/bkts[k].leads):null);
     const roiData=keys.map(k=>bkts[k].invest?Math.round(bkts[k].fat/bkts[k].invest*10)/10:null);
-    dc('ch-crm-invest');
-    const ctxCI=document.getElementById('ch-crm-invest');
-    if(ctxCI) charts['ch-crm-invest']=new Chart(ctxCI,{
-      type:'line',
-      data:{labels:keys.map(labelFn),datasets:[
-        {label:'CPL (R$)',data:cplData,borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.08)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y',spanGaps:true},
-        {label:'ROI (x)',data:roiData,borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1',spanGaps:true},
-      ]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{
-          legend:{labels:{color:'#A89870',font:{size:10},boxWidth:8,padding:10}},
-          tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='y'?'CPL: R$'+ctx.parsed.y:'ROI: '+ctx.parsed.y+'x'}}
-        },
-        scales:{
-          x:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#6B5C40',font:{size:9},maxTicksLimit:maxTicks}},
-          y:{grid:{color:'rgba(255,200,120,0.05)'},ticks:{color:'#E8845A',font:{size:9},callback:v=>'R$'+v},position:'left',beginAtZero:true},
-          y1:{grid:{display:false},ticks:{color:'#4ECDC4',font:{size:9},callback:v=>v+'x'},position:'right',beginAtZero:true},
-        }
+    const ciEl=document.getElementById('ch-crm-invest');
+    if(ciEl){
+      if(!keys.length){ciEl.innerHTML='<div class="empty"><div class="ei">📊</div>Sem dados no período</div>';}
+      else{
+        const avgCpl=cplData.filter(v=>v!=null).reduce((s,v)=>s+v,0)/(cplData.filter(v=>v!=null).length||1);
+        ciEl.innerHTML=`<table class="stbl" style="width:100%">
+          <thead><tr>
+            <th>Período</th>
+            <th style="text-align:right">CPL</th>
+            <th style="text-align:right">ROI</th>
+          </tr></thead>
+          <tbody>${keys.map((k,i)=>{
+            const cpl=cplData[i],roi=roiData[i];
+            const cplCls=cpl==null?'':(cpl<=avgCpl*0.85?'green':cpl>=avgCpl*1.15?'red':'');
+            return `<tr>
+              <td style="color:var(--txt-mid);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.05em;text-transform:uppercase">${labelFn(k)}</td>
+              <td style="text-align:right"><span class="tv ${cplCls}">${cpl!=null?'R$'+cpl:'—'}</span></td>
+              <td style="text-align:right"><span class="tv green">${roi!=null?roi+'x':'—'}</span></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
       }
-    });
+    }
   }
 
   // Tabela funil por origem
