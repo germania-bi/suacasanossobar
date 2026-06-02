@@ -278,7 +278,7 @@
     <div class="mkpi-lg"><div class="mkpi-v green"  id="mk-vendas-ads">--</div><div class="mkpi-l">Vendas Canal<span class="mkpi-scope">germânia</span></div><div class="mkpi-d" id="mk-vendas-ads-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v"        id="mk-cpl">--</div><div class="mkpi-l">Custo por Lead <span class="tip" data-tip="Investimento Meta dividido pelo número de resultados gerados pelos anúncios.">i</span></div><div class="mkpi-d" id="mk-cpl-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v"        id="mk-cac">--</div><div class="mkpi-l">CAC <span class="tip" data-tip="Custo de Aquisição de Cliente — investimento Meta dividido pelas vendas fechadas pelo canal Ads (Germania). Exclui vendas de loja.">i</span></div><div class="mkpi-d" id="mk-cac-d"></div></div>
-    <div class="mkpi-lg"><div class="mkpi-v green"  id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
+    <div class="mkpi-lg"><div class="mkpi-v gold"   id="mk-roi">--</div><div class="mkpi-l">ROI Est. <span class="tip" data-tip="Retorno sobre Investimento estimado — faturamento Canal Germânia ÷ investimento Meta. Ex: 3x = R$3 gerado para cada R$1 investido.">i</span></div><div class="mkpi-d" id="mk-roi-d"></div></div>
   </div>
 
   <!-- Linha 2: Investimento vs Leads -->
@@ -1908,8 +1908,8 @@ function renderMarketing(rd,ads){
     if(ctxCI) charts['ch-crm-invest']=new Chart(ctxCI,{
       type:'line',
       data:{labels:keys.map(labelFn),datasets:[
-        {label:'CPL (R$)',data:cplData,borderColor:'#E8845A',backgroundColor:'rgba(232,132,90,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y',spanGaps:true},
-        {label:'ROI (x)',data:roiData,borderColor:'#4ECDC4',backgroundColor:'rgba(78,205,196,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1',spanGaps:true},
+        {label:'CPL (R$)',data:cplData,borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.08)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:true,yAxisID:'y',spanGaps:true},
+        {label:'ROI (x)',data:roiData,borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.07)',tension:0.35,pointRadius:2,pointHoverRadius:4,fill:false,yAxisID:'y1',spanGaps:true},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,
@@ -1989,7 +1989,7 @@ function renderMarketing(rd,ads){
       const barPx=Math.max(Math.round(pct/100*BAR_MAX),v>0?4:0);
       const share=Math.round(v/totalDia*100);
       const isBest=i===bestDia;
-      const cor=isBest?'var(--gold)':'rgba(30,122,66,0.55)';
+      const cor=isBest?'var(--gold)':'rgba(200,148,26,0.28)';
       const txtCor=isBest?'var(--gold)':'var(--txt-mid)';
       return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:6px">
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:${isBest?'22px':'16px'};font-weight:${isBest?'800':'600'};color:${txtCor};line-height:1">${v}</div>

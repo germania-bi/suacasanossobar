@@ -338,7 +338,7 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
   font-family:'Barlow Condensed',sans-serif;
   font-size:54px; font-weight:900; color:#F0DEB8; line-height:1;
 }
-.mkpi-v.gold { color:var(--gold-lt); }
+.mkpi-lg .mkpi-v.gold { color:var(--gold-lt)!important; }
 .mkpi-v.green{ color:var(--s-green); }
 .mkpi-v.red  { color:var(--s-red); }
 .mkpi-v.blue { color:var(--blue); }
