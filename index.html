@@ -113,23 +113,24 @@
     </div>
     <div class="chart-box">
       <div class="ctitle"><span class="c-title pill-gray">Evolução de Vendas</span><span class="ctitle-sub" id="vg-vendas-sub"></span></div>
+      <div class="ctitle-desc">Vendas fechadas por semana (filtro mensal) ou por mês (filtro longo) — empilhado Germânia e Loja.</div>
       <canvas id="ch-vendas-evo" style="min-height:200px"></canvas>
     </div>
   </div>
 
   <div class="g2">
     <div class="block">
-      <div class="bhead gold"><div class="c-title pill-gray">Canais de Venda</div><div class="bsub" id="vg-canal-periodo"></div></div>
+      <div class="bhead gold"><div class="c-title pill-gray">Canais de Venda</div><div class="bsub" id="vg-canal-periodo"></div><div class="bhead-desc">Leads e fechamentos por canal de entrada — identifica qual origem converte mais no período.</div></div>
       <div class="bbody" id="vg-canal-body"><div class="empty"><div class="ei">⏳</div>Carregando...</div></div>
     </div>
     <div class="block block-map">
-      <div class="bhead blue"><div class="c-title pill-gray">Mapa de Vendas</div><div class="bsub" id="vg-mapa-sub"></div></div>
+      <div class="bhead blue"><div class="c-title pill-gray">Mapa de Vendas</div><div class="bsub" id="vg-mapa-sub"></div><div class="bhead-desc">Cobertura geográfica das vendas — amarelo Germânia, vermelho Loja. Raio = zona histórica de foco para anúncios.</div></div>
       <div class="bbody" style="padding:0;flex:1;display:flex;flex-direction:column"><div id="vg-cidades-map" style="flex:1;min-height:180px;border-radius:0 0 6px 6px"></div></div>
     </div>
   </div>
 
   <div class="block">
-    <div class="bhead"><div class="c-title pill-gray">Vendas nas lojas LigChopp</div><div class="bsub">Venda de Loja</div></div>
+    <div class="bhead"><div class="c-title pill-gray">Vendas nas lojas LigChopp</div><div class="bsub">Venda de Loja</div><div class="bhead-desc">Parceiros que geraram vendas por indicação no período — canal de distribuição indireta da Germânia.</div></div>
     <div class="bbody"><div class="parc-grid" id="icp-parceiros"></div></div>
   </div>
 
