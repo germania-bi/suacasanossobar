@@ -1840,7 +1840,9 @@ function renderMarketing(rd,ads){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
   const fat=ganhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-  const investTotal=(_adsApiCache&&_adsApiCache.key===adsApiKey())?_adsApiCache.investTotal:ads.reduce((s,r)=>s+parseADSBRL(r),0);
+  const apiReady=_adsApiCache&&_adsApiCache.key===adsApiKey();
+  const investTotal=apiReady?_adsApiCache.investTotal:ads.reduce((s,r)=>s+parseADSBRL(r),0);
+  if(!apiReady){document.getElementById('mk-invest').textContent='...';return;}
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
