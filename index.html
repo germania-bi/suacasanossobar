@@ -332,6 +332,23 @@ let rawRD=[], rawEZ=[], rawADS=[];
 let charts={};
 let dateFrom=null, dateTo=null;
 let activeTab='visao';
+const ADS_API='https://germania-ads-dashboard-production.up.railway.app';
+let _adsApiCache=null;
+function fmtYMD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function adsApiKey(){const t=new Date();const since=fmtYMD(dateFrom||t);const until=fmtYMD(new Date(Math.min((dateTo||t).getTime(),t.getTime())));return since+'|'+until;}
+async function refreshADSApi(){
+  if(!dateFrom) return;
+  const key=adsApiKey();
+  if(_adsApiCache?.key===key) return;
+  try{
+    const [since,until]=key.split('|');
+    const res=await fetch(ADS_API+'/api/campaigns?since='+since+'&until='+until);
+    const data=await res.json();
+    const scnb=(data.data||[]).filter(c=>{const n=(c.name||'').toUpperCase();return n.includes('SUA CASA')||n.includes('NOSSO BAR');});
+    _adsApiCache={key,investTotal:scnb.reduce((s,c)=>s+(Number(c.spend)||0),0)};
+    if(activeTab==='mkt') renderMarketing(filterRD(),filterADS());
+  }catch(e){console.warn('ADS API:',e);}
+}
 let autoTimer=null;
 let currentShortcut='thismonth';
 
@@ -1823,7 +1840,7 @@ function renderMarketing(rd,ads){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
   const fat=ganhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-  const investTotal=ads.reduce((s,r)=>s+parseADSBRL(r),0);
+  const investTotal=(_adsApiCache&&_adsApiCache.key===adsApiKey())?_adsApiCache.investTotal:ads.reduce((s,r)=>s+parseADSBRL(r),0);
   const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
@@ -2084,7 +2101,7 @@ function renderAll(){
   if(activeTab==='funil')   renderFunil(rd,ez);
   if(activeTab==='produto') renderProduto(rd);
   if(activeTab==='atend')   renderAtendimento(ez,rd);
-  if(activeTab==='mkt')     renderMarketing(rd,ads);
+  if(activeTab==='mkt')     {renderMarketing(rd,ads);refreshADSApi();}
   atualizaUpd();
 }
 
