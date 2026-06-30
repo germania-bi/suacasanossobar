@@ -1512,7 +1512,7 @@ function renderFunil(rd,ez){
 function renderProduto(rd){
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
-  const produtos=ganho.map(r=>parseProduto(r['Produtos']));
+  const produtos=ganho.map(r=>parseProduto(r['Modelo de Chopeira']||r['Produtos']));
   const master=produtos.filter(p=>p.modelo==='Master').length;
   const mini=produtos.filter(p=>p.modelo==='Mini').length;
   const v110=produtos.filter(p=>p.voltagem==='110v').length;
@@ -1532,7 +1532,7 @@ function renderProduto(rd){
   if(prev){
     const canal=filtroCanal();
     const pGanho=rawRD.filter(r=>{if(canal==='germania'&&isLoja(r))return false;if(canal==='loja'&&!isLoja(r))return false;const d=parseDate(r['Data de fechamento']);return estadoNorm(r)==='Ganho'&&d&&d>=prev.from&&d<=prev.to;});
-    const pProd=pGanho.map(r=>parseProduto(r['Produtos']));
+    const pProd=pGanho.map(r=>parseProduto(r['Modelo de Chopeira']||r['Produtos']));
     const pMaster=pProd.filter(p=>p.modelo==='Master').length;
     const pMini=pProd.filter(p=>p.modelo==='Mini').length;
     const pVendGerm=pGanho.filter(r=>!isLoja(r));
@@ -1567,10 +1567,10 @@ function renderProduto(rd){
 
   // Mix de Produto (Modelo × Voltagem)
   const combos=[
-    ['Master 110v','#C92B1E',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Master'&&p.voltagem==='110v';}).length],
-    ['Master 220v','#e05548',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Master'&&p.voltagem==='220v';}).length],
-    ['Mini 110v',  '#C8941A',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='110v';}).length],
-    ['Mini 220v',  '#e8b84b',ganho.filter(r=>{const p=parseProduto(r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='220v';}).length],
+    ['Master 110v','#C92B1E',ganho.filter(r=>{const p=parseProduto(r['Modelo de Chopeira']||r['Produtos']);return p.modelo==='Master'&&p.voltagem==='110v';}).length],
+    ['Master 220v','#e05548',ganho.filter(r=>{const p=parseProduto(r['Modelo de Chopeira']||r['Produtos']);return p.modelo==='Master'&&p.voltagem==='220v';}).length],
+    ['Mini 110v',  '#C8941A',ganho.filter(r=>{const p=parseProduto(r['Modelo de Chopeira']||r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='110v';}).length],
+    ['Mini 220v',  '#e8b84b',ganho.filter(r=>{const p=parseProduto(r['Modelo de Chopeira']||r['Produtos']);return p.modelo==='Mini'&&p.voltagem==='220v';}).length],
   ].filter(([,, v])=>v>0);
   const comboTotal=combos.reduce((s,[,,v])=>s+v,0)||1;
   const mixEl=document.getElementById('pr-mix');
@@ -1589,7 +1589,7 @@ function renderProduto(rd){
   ganho.forEach(r=>{
     const raw=isLoja(r)?'Loja':parseCampanha(r['Campanha']);
     const canal=(raw==='WPP Button'||raw==='Form Direto')?'Campanhas Pagas':raw;
-    const modelo=parseProduto(r['Produtos']).modelo||'Outro';
+    const modelo=parseProduto(r['Modelo de Chopeira']||r['Produtos']).modelo||'Outro';
     if(!canalMod[canal]) canalMod[canal]={Master:0,Mini:0};
     canalMod[canal][modelo]=(canalMod[canal][modelo]||0)+1;
   });
