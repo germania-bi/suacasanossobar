@@ -428,6 +428,18 @@ function parseMin(s){
   if(p.length===2) return +p[0]*60+ +p[1];
   return null;
 }
+function parseDT(s){
+  if(!s||s==='-') return null;
+  const m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if(!m) return null;
+  return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+m[6]);
+}
+function calcTPI(r){
+  const pia=r['Primeira Interação do Agente'];
+  const cri=r['Criado em'];
+  if(pia&&pia!=='-'&&cri){const t1=parseDT(cri),t2=parseDT(pia);if(t1&&t2&&t2>t1)return(t2-t1)/60000;}
+  return calcTPI(r);
+}
 function fmtMin(m){
   if(m===null||isNaN(m)) return '--';
   const h=Math.floor(m/60),mn=Math.floor(m%60),s=Math.round((m%1)*60);
@@ -788,7 +800,7 @@ function computeVG(from,to){
     return Math.max(0,Math.round((df-dc)/864e5));
   }).filter(v=>v!==null);
   const ezSlice=ezFilter(from,to);
-  const tpis=ezSlice.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+  const tpis=ezSlice.map(r=>calcTPI(r)).filter(v=>v!==null);
   return {
     leads:rdSlice.length,vendGerm:vendGerm.length,vendLoja:vendLoja.length,
     fat,conv,ticket,
@@ -1182,7 +1194,7 @@ function renderVisaoGeral(rd,ez,ads){
     if(!dc||!df) return null;
     return Math.max(0,Math.round((df-dc)/864e5));
   }).filter(v=>v!==null);
-  const tpis=ez.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+  const tpis=ez.map(r=>calcTPI(r)).filter(v=>v!==null);
 
   document.getElementById('vg-leads').textContent=rdC.length||'0';
   document.getElementById('vg-vendas').textContent=vendGerm.length;
@@ -1661,7 +1673,7 @@ function renderPerfil(rd){
 // ═══════════════════════════════════════════════════════
 function renderAtendimento(ez,rd){
   document.getElementById('at-total').textContent=ez.length||'0';
-  const tpis=ez.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+  const tpis=ez.map(r=>calcTPI(r)).filter(v=>v!==null);
   const tmas=ez.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
   const iA=ez.map(r=>parseInt(r['Contagem de Interações do Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
   const iC=ez.map(r=>parseInt(r['Contagem de Interações do Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
@@ -1674,7 +1686,7 @@ function renderAtendimento(ez,rd){
   const prev=getPrevPeriod();const dlbl=getPrevLabel();
   if(prev){
     const pEZ=ezFilter(prev.from,prev.to);
-    const pTpis=pEZ.map(r=>parseMin(r['Tempo para Primeira Interação']||r['TPI'])).filter(v=>v!==null);
+    const pTpis=pEZ.map(r=>calcTPI(r)).filter(v=>v!==null);
     const pTmas=pEZ.map(r=>parseMin(r['TMIC (Tempo Médio de Interação com o Cliente)']||r['TMIC'])).filter(v=>v!==null);
     const pIA=pEZ.map(r=>parseInt(r['Contagem de Interações do Agente']||'0')).filter(v=>!isNaN(v)&&v>0);
     const pIC=pEZ.map(r=>parseInt(r['Contagem de Interações do Cliente']||'0')).filter(v=>!isNaN(v)&&v>0);
@@ -1807,7 +1819,7 @@ function renderAtendimento(ez,rd){
   // TPI por faixa x conversão
   const faixasTPI={'Até 5min':{n:0,v:0},'5–15min':{n:0,v:0},'15–30min':{n:0,v:0},'30–60min':{n:0,v:0},'60+ min':{n:0,v:0}};
   ez.forEach(r=>{
-    const tpi=parseMin(r['Tempo para Primeira Interação']||r['TPI']);
+    const tpi=calcTPI(r);
     if(tpi===null) return;
     const p=normPhone(r['Telefone']);
     const vendeu=p&&ganhoPhones.has(p);
