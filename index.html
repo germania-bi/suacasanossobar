@@ -438,7 +438,7 @@ function calcTPI(r){
   const pia=r['Primeira Interação do Agente'];
   const cri=r['Criado em'];
   if(pia&&pia!=='-'&&cri){const t1=parseDT(cri),t2=parseDT(pia);if(t1&&t2&&t2>t1)return(t2-t1)/60000;}
-  return calcTPI(r);
+  return parseMin(r['Tempo para Primeira Interação']||r['TPI']);
 }
 function fmtMin(m){
   if(m===null||isNaN(m)) return '--';
