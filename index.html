@@ -322,31 +322,72 @@
 const URLS = {
   rd:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=1929371575&single=true&output=csv',
   ez:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=515237738&single=true&output=csv',
-  ads: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmgtuSBRI86Jz3JvRLbPquLflDNM9wHVjlrq-xDtgq7F6pY8jVXZBSyA4PDGbGgg_S77jOH0yw80ue/pub?gid=1447644281&single=true&output=csv',
 };
 
 // ═══════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════
-let rawRD=[], rawEZ=[], rawADS=[];
+let rawRD=[], rawEZ=[];
 let charts={};
 let dateFrom=null, dateTo=null;
 let activeTab='visao';
-const ADS_API='https://germania-ads-dashboard-production.up.railway.app';
+const ADS_API='https://germania-ads-backend.vercel.app';
 let _adsApiCache=null;
 function fmtYMD(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function adsApiKey(){const t=new Date();const since=fmtYMD(dateFrom||t);const until=fmtYMD(new Date(Math.min((dateTo||t).getTime(),t.getTime())));return since+'|'+until;}
+// Granularidade adaptativa compartilhada entre buckets de investimento (ADS API) e leads (RD CRM)
+function bucketConfig(periodDays){
+  const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  if(periodDays<=35) return {
+    keyFn:d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),
+    labelFn:k=>{const p=k.split('-');return p[2]+'/'+p[1];},
+    maxTicks:35,
+  };
+  if(periodDays<=120) return {
+    keyFn:d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;},
+    labelFn:k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];},
+    maxTicks:16,
+  };
+  return {
+    keyFn:d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),
+    labelFn:k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);},
+    maxTicks:18,
+  };
+}
+async function fetchScnbSpend(since,until){
+  const res=await fetch(ADS_API+'/api/campaigns?since='+since+'&until='+until);
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  const scnb=(data.data||[]).filter(c=>{const n=(c.name||'').toUpperCase();return n.includes('SUA CASA')||n.includes('NOSSO BAR');});
+  return scnb.reduce((s,c)=>s+(Number(c.spend)||0),0);
+}
 async function refreshADSApi(){
   if(!dateFrom) return;
   const key=adsApiKey();
   if(_adsApiCache?.key===key) return;
   try{
     const [since,until]=key.split('|');
-    const res=await fetch(ADS_API+'/api/campaigns?since='+since+'&until='+until);
-    const data=await res.json();
-    const scnb=(data.data||[]).filter(c=>{const n=(c.name||'').toUpperCase();return n.includes('SUA CASA')||n.includes('NOSSO BAR');});
-    _adsApiCache={key,investTotal:scnb.reduce((s,c)=>s+(Number(c.spend)||0),0)};
-    if(activeTab==='mkt') renderMarketing(filterRD(),filterADS());
+    const from=dateFrom, to=new Date(Math.min(dateTo.getTime(),Date.now()));
+    const periodDays=Math.round((to-from)/864e5)||1;
+    const {keyFn}=bucketConfig(periodDays);
+    // Agrupa os dias do período em buckets (mesma granularidade dos gráficos) e busca gasto SCNB por bucket em paralelo
+    const bucketRanges={};
+    for(let d=new Date(from);d<=to;d=new Date(+d+864e5)){
+      const k=keyFn(d);
+      if(!bucketRanges[k]) bucketRanges[k]={min:new Date(d),max:new Date(d)};
+      else bucketRanges[k].max=new Date(d);
+    }
+    const bucketKeys=Object.keys(bucketRanges);
+    const prev=getPrevPeriod();
+    const [investTotal,bucketVals,prevInvestTotal]=await Promise.all([
+      fetchScnbSpend(since,until),
+      Promise.all(bucketKeys.map(k=>fetchScnbSpend(fmtYMD(bucketRanges[k].min),fmtYMD(bucketRanges[k].max)))),
+      prev?fetchScnbSpend(fmtYMD(prev.from),fmtYMD(new Date(Math.min(prev.to.getTime(),Date.now())))):Promise.resolve(null),
+    ]);
+    const buckets={};
+    bucketKeys.forEach((k,i)=>buckets[k]=bucketVals[i]);
+    _adsApiCache={key,investTotal,prevInvestTotal,buckets,periodDays};
+    if(activeTab==='mkt') renderMarketing(filterRD());
   }catch(e){console.warn('ADS API:',e);}
 }
 let autoTimer=null;
@@ -416,10 +457,6 @@ function parseBRL(s,centavos=false){
   const v=parseFloat(s);
   if(isNaN(v)) return 0;
   return centavos?v/100:v;
-}
-function parseADSBRL(r){
-  // Meta Ads exporta valores monetários em centavos (inteiros)
-  return parseBRL(r['Valor usado (BRL)']||r['Valor gasto (BRL)']||r['Quantia gasta (BRL)']||r['Valor gasto']||'',true);
 }
 function parseMin(s){
   if(!s||s==='-'||s==='0') return null;
@@ -612,21 +649,6 @@ function filterEZ(){
     return true;
   });
 }
-function isScnbAds(r){
-  const c=(r['Nome da campanha']||'').toUpperCase();
-  return c.includes('SUA CASA')||c.includes('NOSSO BAR');
-}
-function filterADS(){
-  return rawADS.filter(r=>{
-    if(!isScnbAds(r)) return false;
-    const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
-    if(!d) return false;
-    if(dateFrom&&d<dateFrom) return false;
-    if(dateTo&&d>dateTo) return false;
-    return true;
-  });
-}
-
 // ═══════════════════════════════════════════════════════
 // CHART HELPERS
 // ═══════════════════════════════════════════════════════
@@ -1172,7 +1194,7 @@ function renderHeader(rd){
 // ═══════════════════════════════════════════════════════
 // RENDER — VISÃO GERAL
 // ═══════════════════════════════════════════════════════
-function renderVisaoGeral(rd,ez,ads){
+function renderVisaoGeral(rd,ez){
   const rdC=filterRDCriacao();
   const ganho=rd.filter(r=>estadoNorm(r)==='Ganho');
   const vendGerm=ganho.filter(r=>!isLoja(r));
@@ -1848,20 +1870,21 @@ function renderAtendimento(ez,rd){
 // ═══════════════════════════════════════════════════════
 // RENDER — MARKETING & ADS
 // ═══════════════════════════════════════════════════════
-function renderMarketing(rd,ads){
+function renderMarketing(rd){
   const rdC=filterRDCriacao().filter(r=>!isLoja(r));
   const ganhoGerm=rd.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r));
   const fat=ganhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
   const apiReady=_adsApiCache&&_adsApiCache.key===adsApiKey();
-  const investTotal=apiReady?_adsApiCache.investTotal:ads.reduce((s,r)=>s+parseADSBRL(r),0);
   if(!apiReady){document.getElementById('mk-invest').textContent='...';return;}
-  const leadsAds=ads.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
+  const investTotal=_adsApiCache.investTotal;
+  // Leads = base do RD CRM (mais preciso que "Resultados" do Meta, que conta cliques/mensagens)
+  const leadsAds=rdC.length;
   const cpl=leadsAds?investTotal/leadsAds:0;
   const roi=investTotal?fat/investTotal:0;
   const cac=ganhoGerm.length?investTotal/ganhoGerm.length:0;
 
   document.getElementById('mk-invest').textContent=fmtBRL(investTotal)||'--';
-  document.getElementById('mk-leads-ads').textContent=leadsAds||rdC.length;
+  document.getElementById('mk-leads-ads').textContent=leadsAds;
   document.getElementById('mk-vendas-ads').textContent=ganhoGerm.length;
   document.getElementById('mk-cpl').textContent=cpl?fmtBRLk(cpl):'--';
   document.getElementById('mk-cac').textContent=cac?fmtBRL(cac):'--';
@@ -1873,18 +1896,19 @@ function renderMarketing(rd,ads){
     const pRdC=rawRD.filter(r=>{if(isLoja(r))return false;const d=parseDate(r['Data de criação']);return d&&d>=prev.from&&d<=prev.to;});
     const pGanhoGerm=pRdC.filter(r=>estadoNorm(r)==='Ganho');
     const pFat=pGanhoGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-    const pAds=rawADS.filter(r=>{if(!isScnbAds(r))return false;const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');return d&&d>=prev.from&&d<=prev.to;});
-    const pInvest=pAds.reduce((s,r)=>s+parseADSBRL(r),0);
-    const pLeadsAds=pAds.reduce((s,r)=>{const v=parseInt(r['Resultados']||'0');return s+(isNaN(v)?0:v);},0);
-    const pCpl=pLeadsAds?pInvest/pLeadsAds:0;
+    const pInvest=_adsApiCache.prevInvestTotal;
+    const pLeadsAds=pRdC.length;
+    const pCpl=pLeadsAds&&pInvest?pInvest/pLeadsAds:0;
     const pRoi=pInvest?pFat/pInvest:0;
-    const pCac=pGanhoGerm.length?pInvest/pGanhoGerm.length:0;
-    setDelta('mk-invest-d',investTotal,pInvest,false,true,dlbl);
-    setDelta('mk-leads-ads-d',leadsAds||rdC.length,pLeadsAds||pRdC.length,false,false,dlbl);
+    const pCac=pGanhoGerm.length&&pInvest?pInvest/pGanhoGerm.length:0;
+    if(pInvest!=null) setDelta('mk-invest-d',investTotal,pInvest,false,true,dlbl);
+    setDelta('mk-leads-ads-d',leadsAds,pLeadsAds,false,false,dlbl);
     setDelta('mk-vendas-ads-d',ganhoGerm.length,pGanhoGerm.length,false,false,dlbl);
-    setDelta('mk-cpl-d',cpl||null,pCpl||null,false,true,dlbl,true);
-    setDelta('mk-cac-d',cac||null,pCac||null,false,true,dlbl,true);
-    setDelta('mk-roi-d',roi?Math.round(roi*10)/10:null,pRoi?Math.round(pRoi*10)/10:null,false,false,dlbl);
+    if(pInvest!=null){
+      setDelta('mk-cpl-d',cpl||null,pCpl||null,false,true,dlbl,true);
+      setDelta('mk-cac-d',cac||null,pCac||null,false,true,dlbl,true);
+      setDelta('mk-roi-d',roi?Math.round(roi*10)/10:null,pRoi?Math.round(pRoi*10)/10:null,false,false,dlbl);
+    }
   }
 
   function canalStats(canal){
@@ -1902,35 +1926,22 @@ function renderMarketing(rd,ads){
     if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
   // CPL × ROI — eficiência ao longo do tempo
-  if(ads.length){
-    const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
-    let keyFn,labelFn,subTxt,maxTicks;
-    if(periodDays<=35){
-      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
-      subTxt='eficiência diária'; maxTicks=35;
-    } else if(periodDays<=120){
-      keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
-      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
-      subTxt='eficiência semanal'; maxTicks=16;
-    } else {
-      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
-      subTxt='eficiência mensal'; maxTicks=18;
-    }
+  {
+    const periodDays=_adsApiCache.periodDays;
+    const {keyFn,labelFn}=bucketConfig(periodDays);
+    const subTxt=periodDays<=35?'eficiência diária':periodDays<=120?'eficiência semanal':'eficiência mensal';
     const subEl=document.getElementById('mk-crm-invest-sub');
     if(subEl) subEl.textContent=subTxt;
     const bkts={};
-    // Investimento + leads Meta por período
-    ads.forEach(r=>{
-      const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
+    // Investimento Meta (SCNB) por período, via ADS API
+    Object.keys(_adsApiCache.buckets).forEach(k=>{bkts[k]={invest:_adsApiCache.buckets[k],leads:0,fat:0};});
+    // Leads por período, via RD CRM (criação)
+    rdC.forEach(r=>{
+      const d=parseDate(r['Data de criação']);
       if(!d) return;
       const k=keyFn(d);
       if(!bkts[k]) bkts[k]={invest:0,leads:0,fat:0};
-      bkts[k].invest+=parseADSBRL(r);
-      const l=parseInt(r['Resultados']||'0');
-      if(!isNaN(l)) bkts[k].leads+=l;
+      bkts[k].leads++;
     });
     // Faturamento Germania por período (dFech||dCria)
     rawRD.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r)).forEach(r=>{
@@ -2052,34 +2063,20 @@ function renderMarketing(rd,ads){
   }
 
   // Investimento vs Leads — granularidade adaptativa ao período
-  if(ads.length){
-    const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    const periodDays=dateFrom&&dateTo?Math.round((dateTo-dateFrom)/864e5):90;
-    let keyFn,labelFn,bsubTxt,maxTicks;
-    if(periodDays<=35){
-      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      labelFn=k=>{const p=k.split('-');return p[2]+'/'+p[1];};
-      bsubTxt='evolução diária Meta'; maxTicks=35;
-    } else if(periodDays<=120){
-      keyFn=d=>{const s=d.getDate()<=9?'S1':d.getDate()<=16?'S2':d.getDate()<=23?'S3':'S4';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+s;};
-      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+' '+p[2];};
-      bsubTxt='evolução semanal Meta'; maxTicks=16;
-    } else {
-      keyFn=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      labelFn=k=>{const p=k.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
-      bsubTxt='evolução mensal Meta'; maxTicks=18;
-    }
+  {
+    const periodDays=_adsApiCache.periodDays;
+    const {keyFn,labelFn}=bucketConfig(periodDays);
+    const bsubTxt=periodDays<=35?'evolução diária Meta':periodDays<=120?'evolução semanal Meta':'evolução mensal Meta';
     const bsubEl=document.getElementById('mk-invest-bsub');
     if(bsubEl) bsubEl.textContent=bsubTxt;
     const buckets={};
-    ads.forEach(r=>{
-      const d=parseDate(r['Início dos relatórios']||r['Data']||r['Data de início']||'');
+    Object.keys(_adsApiCache.buckets).forEach(k=>{buckets[k]={invest:_adsApiCache.buckets[k],leads:0};});
+    rdC.forEach(r=>{
+      const d=parseDate(r['Data de criação']);
       if(!d) return;
       const k=keyFn(d);
       if(!buckets[k]) buckets[k]={invest:0,leads:0};
-      buckets[k].invest+=parseADSBRL(r);
-      const l=parseInt(r['Resultados']||'0');
-      if(!isNaN(l)) buckets[k].leads+=l;
+      buckets[k].leads++;
     });
     const keys=Object.keys(buckets).sort();
     dc('ch-invest-leads');
@@ -2088,7 +2085,7 @@ function renderMarketing(rd,ads){
       type:'line',
       data:{labels:keys.map(labelFn),datasets:[
         {label:'Invest. R$',data:keys.map(k=>Math.round(buckets[k].invest)),borderColor:'#C8941A',backgroundColor:'rgba(200,148,26,0.1)',tension:0.3,pointRadius:3,fill:false,yAxisID:'y'},
-        {label:'Leads Meta',data:keys.map(k=>buckets[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.15)',tension:0.3,pointRadius:3,fill:true,yAxisID:'y1'},
+        {label:'Leads (RD)',data:keys.map(k=>buckets[k].leads),borderColor:'#5B7FA6',backgroundColor:'rgba(91,127,166,0.15)',tension:0.3,pointRadius:3,fill:true,yAxisID:'y1'},
       ]},
       options:{
         responsive:true,maintainAspectRatio:false,
@@ -2109,13 +2106,12 @@ function renderMarketing(rd,ads){
 function renderAll(){
   const rd=filterRD();
   const ez=filterEZ();
-  const ads=filterADS();
   renderHeader(rd);
-  if(activeTab==='visao')   renderVisaoGeral(rd,ez,ads);
+  if(activeTab==='visao')   renderVisaoGeral(rd,ez);
   if(activeTab==='funil')   renderFunil(rd,ez);
   if(activeTab==='produto') renderProduto(rd);
   if(activeTab==='atend')   renderAtendimento(ez,rd);
-  if(activeTab==='mkt')     {renderMarketing(rd,ads);refreshADSApi();}
+  if(activeTab==='mkt')     {renderMarketing(rd);refreshADSApi();}
   atualizaUpd();
 }
 
@@ -2151,13 +2147,11 @@ async function fetchSheets(){
     const d=parseCSV(text);
     if(type==='rd') rawRD=d;
     else if(type==='ez') rawEZ=d;
-    else if(type==='ads') rawADS=d;
   };
   const errs=[];
   await Promise.allSettled([
     go(URLS.rd,'rd').catch(e=>errs.push('RD: '+e.message)),
     go(URLS.ez,'ez').catch(e=>errs.push('EZ: '+e.message)),
-    go(URLS.ads,'ads').catch(e=>errs.push('ADS: '+e.message)),
   ]);
   if(btn) btn.classList.remove('loading');
   errs.length?setSS('err','Erro: '+errs[0]):setSS('ok',new Date().toLocaleTimeString('pt-BR'));
