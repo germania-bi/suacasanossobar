@@ -970,6 +970,10 @@ const CIDADES_SP={
   'Itupeva':               {lat:-23.1556,lon:-47.0586},
   // Bairros de São Paulo mapeados no CRM
   'Vila Formosa':          {lat:-23.5447,lon:-46.5281},
+  'Freguesia do Ó':        {lat:-23.4903,lon:-46.6807},
+  'Jabaquara':             {lat:-23.6389,lon:-46.6403},
+  'Autódromo':             {lat:-23.7008,lon:-46.6981},
+  'Chácara Inglesa':       {lat:-23.6423,lon:-46.6363},
   // Outros estados (clientes podem ser de fora de SP)
   'Extrema':               {lat:-22.8594,lon:-46.3175},
   'Uberaba':               {lat:-19.7475,lon:-47.9397},
@@ -1007,8 +1011,8 @@ function resolveCity(raw){
     const n2=_cidadesNorm[normCidade(noParens)];
     if(n2) return n2.cidade;
   }
-  // Tenta cada segmento separado por - , /
-  for(const part of trimmed.split(/[-,\/]/)){
+  // Tenta cada segmento separado por - , / ; (RD CRM permite múltiplas unidades por negociação)
+  for(const part of trimmed.split(/[-,;\/]/)){
     const p=part.trim();
     if(p.length<3) continue;
     const n=_cidadesNorm[normCidade(p)];
@@ -2065,7 +2069,7 @@ function renderMarketing(rd){
   // Investimento vs Leads — granularidade adaptativa ao período
   {
     const periodDays=_adsApiCache.periodDays;
-    const {keyFn,labelFn}=bucketConfig(periodDays);
+    const {keyFn,labelFn,maxTicks}=bucketConfig(periodDays);
     const bsubTxt=periodDays<=35?'evolução diária Meta':periodDays<=120?'evolução semanal Meta':'evolução mensal Meta';
     const bsubEl=document.getElementById('mk-invest-bsub');
     if(bsubEl) bsubEl.textContent=bsubTxt;
