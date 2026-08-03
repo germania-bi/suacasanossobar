@@ -760,10 +760,11 @@ span.flatpickr-weekday{ background:var(--card2)!important; color:var(--txt-mid)!
 .leaflet-control-attribution{ font-size:8px !important; background:rgba(26,18,8,0.7) !important; color:var(--txt-faint) !important; }
 .leaflet-control-attribution a{ color:var(--txt-faint) !important; }
 .mapa-tooltip{
-  background:var(--card2); border:0.8px solid rgba(255,200,120,0.22);
-  color:var(--txt); font-size:12px; padding:5px 9px; border-radius:5px;
-  box-shadow:0 3px 10px rgba(0,0,0,0.5); white-space:nowrap;
+  background:rgba(15,10,6,0.97); border:1px solid rgba(255,166,44,0.35);
+  color:#F5EDE0; font-size:13.5px; padding:9px 13px; border-radius:8px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.6); white-space:nowrap; line-height:1.5;
 }
+.mapa-tooltip strong{ font-size:15px; color:#FFA62C; }
 .mapa-tooltip::before{ display:none; }
 .mapa-pin{ background:transparent !important; border:none !important; }
 .mapa-rank-ctrl{

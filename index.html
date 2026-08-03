@@ -101,14 +101,14 @@
     <div class="mkpi-lg"><div class="mkpi-v"       id="vg-leads">--</div><div class="mkpi-l">Leads<span class="mkpi-scope">canal + loja</span></div><div class="mkpi-d" id="vg-leads-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v green"  id="vg-vendas">--</div><div class="mkpi-l">Vendas Germania<span class="mkpi-scope">excl. loja</span></div><div class="mkpi-d" id="vg-vendas-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v blue"   id="vg-loja">--</div><div class="mkpi-l">Vendas de Loja<span class="mkpi-scope">parceiros</span></div><div class="mkpi-d" id="vg-loja-d"></div></div>
-    <div class="mkpi-lg"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado<span class="mkpi-scope">total geral</span></div><div class="mkpi-d" id="vg-fat-d"></div></div>
+    <div class="mkpi-lg"><div class="mkpi-v gold"   id="vg-fat">--</div><div class="mkpi-l">Faturado<span class="mkpi-scope" id="vg-fat-scope">total geral</span></div><div class="mkpi-d" id="vg-fat-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v"        id="vg-conv">--</div><div class="mkpi-l">Conversão<span class="mkpi-scope">germânia</span></div><div class="mkpi-d" id="vg-conv-d"></div></div>
     <div class="mkpi-lg"><div class="mkpi-v"        id="vg-ciclo">--</div><div class="mkpi-l">Ciclo Médio<span class="mkpi-scope">germânia</span></div><div class="mkpi-d" id="vg-ciclo-d"></div></div>
   </div>
 
   <div class="g21">
     <div class="chart-box">
-      <div class="ctitle"><span class="c-title pill-gray">Leads por Dia</span><span class="ctitle-sub" id="vg-leadsdia-sub"></span></div>
+      <div class="ctitle"><span class="c-title pill-gray" id="vg-leadsdia-title">Leads por Dia</span><span class="ctitle-sub" id="vg-leadsdia-sub"></span></div>
       <div class="ctitle-desc">Novos leads por dia (filtro mensal) ou por mês (filtro longo) — pico destacado em vermelho.</div>
       <canvas id="ch-leads-dia" style="min-height:200px"></canvas>
     </div>
@@ -294,7 +294,7 @@
       <div class="bbody" style="display:flex;flex-direction:column;justify-content:center"><div id="ch-leads-canal"></div></div>
     </div>
     <div class="block" style="display:flex;flex-direction:column">
-      <div class="bhead"><div class="c-title pill-gray">CPL × ROI</div><div class="bsub" id="mk-crm-invest-sub">eficiência ao longo do tempo</div><div class="bhead-desc">Custo por lead e retorno sobre investimento ao longo do tempo — CPL caindo e ROI subindo indica campanha ganhando eficiência.</div></div>
+      <div class="bhead"><div class="c-title pill-gray">CPL × ROI</div><div class="bsub" id="mk-crm-invest-sub">top 5 meses · todo o histórico</div><div class="bhead-desc">Ranking fixo dos 5 melhores meses por ROI desde o início do histórico — não muda com o filtro de data. Mostra em quais meses o investimento em Ads rendeu mais.</div></div>
       <div class="bbody"><div id="ch-crm-invest"></div></div>
     </div>
   </div>
@@ -390,6 +390,41 @@ async function refreshADSApi(){
     if(activeTab==='mkt') renderMarketing(filterRD());
   }catch(e){console.warn('ADS API:',e);}
 }
+// Top 5 meses por ROI — ranking estático (independe do filtro de data), recalcula só quando os dados mudam
+let _top5CplRoiCache=null;
+async function refreshTop5CplRoi(){
+  if(!rawRD.length) return;
+  const dates=rawRD.map(r=>parseDate(r['Data de criação'])).filter(Boolean);
+  if(!dates.length) return;
+  const minD=new Date(Math.min(...dates)),maxD=new Date(Math.min(Math.max(...dates),Date.now()));
+  const monthKeys=[];
+  for(let c=new Date(minD.getFullYear(),minD.getMonth(),1),last=new Date(maxD.getFullYear(),maxD.getMonth(),1);c<=last;c=new Date(c.getFullYear(),c.getMonth()+1,1)){
+    monthKeys.push(c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0'));
+  }
+  const key=monthKeys[0]+'|'+monthKeys[monthKeys.length-1]+'|'+rawRD.length;
+  if(_top5CplRoiCache?.key===key) return;
+  try{
+    const investVals=await Promise.all(monthKeys.map(mk=>{
+      const [y,m]=mk.split('-').map(Number);
+      const since=new Date(y,m-1,1),until=new Date(Math.min(new Date(y,m,0).getTime(),Date.now()));
+      return fetchScnbSpend(fmtYMD(since),fmtYMD(until));
+    }));
+    const months=monthKeys.map((mk,i)=>{
+      const [y,m]=mk.split('-').map(Number);
+      const mStart=new Date(y,m-1,1),mEnd=new Date(y,m,0,23,59,59,999);
+      const leads=rawRD.filter(r=>{if(isLoja(r)) return false;const d=parseDate(r['Data de criação']);return d&&d>=mStart&&d<=mEnd;}).length;
+      const fat=rawRD.filter(r=>{
+        if(estadoNorm(r)!=='Ganho'||isLoja(r)) return false;
+        const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
+        return d&&d>=mStart&&d<=mEnd;
+      }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
+      const invest=investVals[i];
+      return {mk,invest,leads,fat,cpl:leads&&invest?invest/leads:null,roi:invest?fat/invest:null};
+    }).filter(m=>m.invest>0);
+    _top5CplRoiCache={key,months};
+    if(activeTab==='mkt') renderMarketing(filterRD());
+  }catch(e){console.warn('Top5 CPL/ROI:',e);}
+}
 let autoTimer=null;
 let currentShortcut='thismonth';
 
@@ -399,6 +434,24 @@ let currentShortcut='thismonth';
 Chart.defaults.color='#6B5C40';
 Chart.defaults.borderColor='rgba(255,200,120,0.08)';
 Chart.defaults.font.family="'Barlow',sans-serif";
+// Tooltips maiores, mais contrastados — números fáceis de ler à distância
+Chart.defaults.plugins.tooltip.enabled=true;
+Chart.defaults.plugins.tooltip.backgroundColor='rgba(15,10,6,0.96)';
+Chart.defaults.plugins.tooltip.titleColor='#FFA62C';
+Chart.defaults.plugins.tooltip.titleFont={size:13,weight:'700',family:"'Barlow Condensed',sans-serif"};
+Chart.defaults.plugins.tooltip.titleMarginBottom=6;
+Chart.defaults.plugins.tooltip.bodyColor='#F5EDE0';
+Chart.defaults.plugins.tooltip.bodyFont={size:13,weight:'600',family:"'Barlow',sans-serif"};
+Chart.defaults.plugins.tooltip.padding=12;
+Chart.defaults.plugins.tooltip.cornerRadius=8;
+Chart.defaults.plugins.tooltip.displayColors=true;
+Chart.defaults.plugins.tooltip.boxWidth=10;
+Chart.defaults.plugins.tooltip.boxHeight=10;
+Chart.defaults.plugins.tooltip.boxPadding=6;
+Chart.defaults.plugins.tooltip.usePointStyle=true;
+Chart.defaults.plugins.tooltip.borderColor='rgba(255,166,44,0.35)';
+Chart.defaults.plugins.tooltip.borderWidth=1;
+Chart.defaults.plugins.tooltip.caretSize=6;
 const C=['#C92B1E','#C8941A','#1E7A42','#5B7FA6','#a78bfa','#e05c1a','#34d399','#FFA62C'];
 const DONUT={plugins:{legend:{position:'right',labels:{padding:10,font:{size:10},boxWidth:8,color:'#A89870'}}},cutout:'64%',responsive:true,maintainAspectRatio:true};
 
@@ -1134,7 +1187,7 @@ function renderMapaSP(ganho){
         iconSize:sz,iconAnchor:[sz[0]/2,sz[1]],tooltipAnchor:[0,-sz[1]]
       })
     }).bindTooltip(
-      `<strong>${cidade}</strong><br>${d.n} venda${d.n>1?'s':''}<br>${fatStr}${detCanal}`,
+      `<strong>${cidade}</strong><br><span style="color:${fill};font-weight:800;font-size:15px">${d.n}</span> venda${d.n>1?'s':''}<br>${fatStr}${detCanal}`,
       {className:'mapa-tooltip',sticky:false,direction:'top',offset:[0,-4]}
     ).addTo(_mapaLeaflet);
     _mapaLayers.push(pin);
@@ -1219,10 +1272,13 @@ function renderVisaoGeral(rd,ez){
   const vendGerm=ganho.filter(r=>!isLoja(r));
   const vendLoja=ganho.filter(r=>isLoja(r));
   const fat=vendGerm.reduce((s,r)=>{return s+parseBRL(r['Valor Único']);},0);
-  // fatTotal: faturamento Canal Germânia, sempre via rawRD (ignora filtro de canal)
-  // usa criação||fechamento igual ao filterRD — garante mesmos 8 deals que vendGerm
+  // fatTotal: faturamento respeitando o filtro de canal (Todos/Germânia/Loja)
+  // usa criação||fechamento igual ao filterRD — garante mesmos deals que vendGerm/vendLoja
   const computeFatAll=(from,to)=>rawRD.filter(r=>{
     if(estadoNorm(r)!=='Ganho') return false;
+    const canal=filtroCanal();
+    if(canal==='germania'&&isLoja(r)) return false;
+    if(canal==='loja'&&!isLoja(r)) return false;
     const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
     return d&&(!from||d>=from)&&(!to||d<=to);
   }).reduce((s,r)=>s+parseBRL(r['Valor Único']),0);
@@ -1237,6 +1293,9 @@ function renderVisaoGeral(rd,ez){
     return Math.max(0,Math.round((df-dc)/864e5));
   }).filter(v=>v!==null);
   const tpis=ez.map(r=>calcTPI(r)).filter(v=>v!==null);
+
+  const fatScopeEl=document.getElementById('vg-fat-scope');
+  if(fatScopeEl){const c=filtroCanal();fatScopeEl.textContent=c==='germania'?'germânia':c==='loja'?'loja':'total geral';}
 
   document.getElementById('vg-leads').textContent=rdC.length||'0';
   document.getElementById('vg-vendas').textContent=uVendGerm;
@@ -1259,6 +1318,8 @@ function renderVisaoGeral(rd,ez){
   // Leads por dia/mês — granularidade adaptativa (≤35d → diário, >35d → mensal)
   const spanL=dateFrom&&dateTo?(dateTo-dateFrom)/864e5:30;
   const granL=spanL<=35?'dia':'mes';
+  const leadsDiaTitleEl=document.getElementById('vg-leadsdia-title');
+  if(leadsDiaTitleEl) leadsDiaTitleEl.textContent=granL==='mes'?'Leads por Mês':'Leads por Dia';
   const mAbrL=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const keyL=d=>granL==='mes'?fmt(d).slice(0,7):fmt(d);
   const labelLeads=k=>granL==='mes'?mAbrL[parseInt(k.slice(5))-1]+'/'+k.slice(2,4):parseInt(k.slice(8))+'';
@@ -1961,57 +2022,28 @@ function renderMarketing(rd){
     const convEl=document.getElementById('ccf-'+pfx+'-conv');
     if(convEl){convEl.textContent=s.conv+'%';convEl.className='conv-badge '+(s.conv>=15?'hi':s.conv>=5?'mid':'lo');}
   };
-  // CPL × ROI — eficiência ao longo do tempo
+  // CPL × ROI — ranking estático dos top 5 meses por ROI (não muda com o filtro de data)
   {
-    const periodDays=_adsApiCache.periodDays;
-    const {keyFn,labelFn}=bucketConfig(periodDays);
-    const subTxt=periodDays<=35?'eficiência diária':periodDays<=120?'eficiência semanal':'eficiência mensal';
     const subEl=document.getElementById('mk-crm-invest-sub');
-    if(subEl) subEl.textContent=subTxt;
-    const bkts={};
-    // Investimento Meta (SCNB) por período, via ADS API
-    Object.keys(_adsApiCache.buckets).forEach(k=>{bkts[k]={invest:_adsApiCache.buckets[k],leads:0,fat:0};});
-    // Leads por período, via RD CRM (criação)
-    rdC.forEach(r=>{
-      const d=parseDate(r['Data de criação']);
-      if(!d) return;
-      const k=keyFn(d);
-      if(!bkts[k]) bkts[k]={invest:0,leads:0,fat:0};
-      bkts[k].leads++;
-    });
-    // Faturamento Germania por período (dFech||dCria)
-    rawRD.filter(r=>estadoNorm(r)==='Ganho'&&!isLoja(r)).forEach(r=>{
-      const d=parseDate(r['Data de fechamento'])||parseDate(r['Data de criação']);
-      if(!d||!dateFrom||!dateTo||d<dateFrom||d>dateTo) return;
-      const k=keyFn(d);
-      if(!bkts[k]) bkts[k]={invest:0,leads:0,fat:0};
-      bkts[k].fat+=parseBRL(r['Valor Único']);
-    });
-    const keys=Object.keys(bkts).sort();
+    if(subEl) subEl.textContent='top 5 meses · todo o histórico';
     const ciEl=document.getElementById('ch-crm-invest');
     if(ciEl){
-      if(!keys.length){ciEl.innerHTML='<div class="empty"><div class="ei">📊</div>Sem dados no período</div>';}
+      const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      const labelMes=mk=>{const p=mk.split('-');return meses[+p[1]-1]+'/'+p[0].slice(2);};
+      const months=_top5CplRoiCache?.months||[];
+      if(!months.length){ciEl.innerHTML='<div class="empty"><div class="ei">📊</div>Calculando ranking...</div>';}
       else{
-        // Agregar em no máximo 5 grupos com média ponderada
-        const MAX=5;
-        const gsz=Math.ceil(keys.length/MAX);
-        const rows=[];
-        for(let i=0;i<keys.length;i+=gsz){
-          const grp=keys.slice(i,i+gsz);
-          const inv=grp.reduce((s,k)=>s+bkts[k].invest,0);
-          const lds=grp.reduce((s,k)=>s+bkts[k].leads,0);
-          const fat=grp.reduce((s,k)=>s+bkts[k].fat,0);
-          const lbl=grp.length>1?labelFn(grp[0])+'–'+labelFn(grp[grp.length-1]):labelFn(grp[0]);
-          rows.push({lbl,cpl:lds?Math.round(inv/lds):null,roi:inv?Math.round(fat/inv*10)/10:null});
-        }
-        const avgCpl=rows.filter(r=>r.cpl!=null).reduce((s,r)=>s+r.cpl,0)/(rows.filter(r=>r.cpl!=null).length||1);
-        const maxCpl=Math.max(...rows.map(r=>r.cpl||0))||1;
-        ciEl.innerHTML=rows.map(({lbl,cpl,roi})=>{
+        const top5=[...months].sort((a,b)=>(b.roi??-1)-(a.roi??-1)).slice(0,5);
+        const avgCpl=top5.filter(m=>m.cpl!=null).reduce((s,m)=>s+m.cpl,0)/(top5.filter(m=>m.cpl!=null).length||1);
+        const maxRoi=Math.max(...top5.map(m=>m.roi||0))||1;
+        ciEl.innerHTML=top5.map((m,i)=>{
+          const cpl=m.cpl!=null?Math.round(m.cpl):null;
+          const roi=m.roi!=null?Math.round(m.roi*10)/10:null;
           const cplCls=cpl==null?'':(cpl<=avgCpl*0.85?'green':cpl>=avgCpl*1.15?'red':'');
-          const barPct=cpl?Math.round(cpl/maxCpl*100):0;
-          const barCol=cpl<=avgCpl*0.85?'rgba(78,173,114,.5)':cpl>=avgCpl*1.15?'rgba(224,92,80,.5)':'rgba(200,148,26,.35)';
+          const barPct=m.roi?Math.round(m.roi/maxRoi*100):0;
+          const barCol=i===0?'rgba(200,148,26,.6)':'rgba(78,173,114,.45)';
           return `<div class="cpl-roi-row">
-            <span class="cpl-roi-period">${lbl}</span>
+            <span class="cpl-roi-period">#${i+1} ${labelMes(m.mk)}</span>
             <div class="cpl-roi-bar-wrap"><div class="cpl-roi-bar" style="width:${barPct}%;background:${barCol}"></div></div>
             <div class="cpl-roi-metric"><span class="cpl-roi-val ${cplCls}">${cpl!=null?'R$'+cpl:'—'}</span><span class="cpl-roi-lbl">CPL</span></div>
             <div class="cpl-roi-metric"><span class="cpl-roi-val green">${roi!=null?roi+'x':'—'}</span><span class="cpl-roi-lbl">ROI</span></div>
@@ -2147,7 +2179,7 @@ function renderAll(){
   if(activeTab==='funil')   renderFunil(rd,ez);
   if(activeTab==='produto') renderProduto(rd);
   if(activeTab==='atend')   renderAtendimento(ez,rd);
-  if(activeTab==='mkt')     {renderMarketing(rd);refreshADSApi();}
+  if(activeTab==='mkt')     {renderMarketing(rd);refreshADSApi();refreshTop5CplRoi();}
   atualizaUpd();
 }
 
